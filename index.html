@@ -310,8 +310,8 @@ hr { border:none; border-top:2px solid var(--border); }
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-database.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-app.js" onerror="console.warn('firebase-app failed')"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-database.js" onerror="console.warn('firebase-db failed')"></script>
 <script>
 // ── FIREBASE CONFIG ──────────────────────────────
 var firebaseConfig = {
@@ -943,44 +943,57 @@ function leaveRoom() {
 }
 
 // ── INIT ─────────────────────────────────────────
-window.onload = function() {
-
-  // Category buttons
-  var catBtns = document.querySelectorAll('.cat');
-  for (var i=0; i<catBtns.length; i++) {
-    (function(btn){ btn.addEventListener('click', function(){ toggleCat(btn); }); })(catBtns[i]);
+// Wire buttons IMMEDIATELY — no waiting, no dependencies
+(function() {
+  function ready(fn) {
+    if (document.readyState !== 'loading') { fn(); }
+    else { document.addEventListener('DOMContentLoaded', fn); }
   }
 
-  // All action buttons
-  document.getElementById('btn-create').addEventListener('click',   createRoom);
-  document.getElementById('btn-join').addEventListener('click',     joinRoom);
-  document.getElementById('code-display').addEventListener('click', copyCode);
-  document.getElementById('btn-start').addEventListener('click',    startGame);
-  document.getElementById('btn-leave-h').addEventListener('click',  leaveRoom);
-  document.getElementById('btn-leave-g').addEventListener('click',  leaveRoom);
-  document.getElementById('btn-skip').addEventListener('click',     skipTurn);
-  document.getElementById('btn-again').addEventListener('click',    playAgain);
-  document.getElementById('btn-lobby').addEventListener('click',    leaveRoom);
+  ready(function() {
+    // Category buttons
+    var catBtns = document.querySelectorAll('.cat');
+    for (var i=0; i<catBtns.length; i++) {
+      (function(btn){ btn.addEventListener('click', function(){ toggleCat(btn); }); })(catBtns[i]);
+    }
 
-  // Enter key
-  document.getElementById('host-name').addEventListener('keydown', function(e){ if(e.key==='Enter') createRoom(); });
-  document.getElementById('join-name').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
-  document.getElementById('room-code').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
+    // Action buttons
+    document.getElementById('btn-create').addEventListener('click',   createRoom);
+    document.getElementById('btn-join').addEventListener('click',     joinRoom);
+    document.getElementById('code-display').addEventListener('click', copyCode);
+    document.getElementById('btn-start').addEventListener('click',    startGame);
+    document.getElementById('btn-leave-h').addEventListener('click',  leaveRoom);
+    document.getElementById('btn-leave-g').addEventListener('click',  leaveRoom);
+    document.getElementById('btn-skip').addEventListener('click',     skipTurn);
+    document.getElementById('btn-again').addEventListener('click',    playAgain);
+    document.getElementById('btn-lobby').addEventListener('click',    leaveRoom);
 
-  // Firebase
+    // Enter key shortcuts
+    document.getElementById('host-name').addEventListener('keydown', function(e){ if(e.key==='Enter') createRoom(); });
+    document.getElementById('join-name').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
+    document.getElementById('room-code').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
+
+    console.log('Buttons wired OK');
+  });
+})();
+
+// Firebase init runs separately — a failure here CANNOT affect buttons
+window.addEventListener('load', function() {
   try {
-    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (typeof firebase !== 'undefined' && firebase.database) {
+      if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
       db = firebase.database();
       console.log('Firebase OK');
     } else {
-      document.getElementById('status-banner').style.display = 'block';
+      throw new Error('Firebase not available');
     }
   } catch(e) {
-    document.getElementById('status-banner').style.display = 'block';
-    console.warn('Firebase:', e.message);
+    db = null;
+    console.warn('Firebase unavailable — solo mode:', e.message);
+    var banner = document.getElementById('status-banner');
+    if (banner) banner.style.display = 'block';
   }
-};
+});
 </script>
 </body>
 </html>
