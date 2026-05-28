@@ -8,11 +8,10 @@
 <style>
 :root {
   --bg:#f0f4ff; --white:#fff; --surface:#f8f9ff;
-  --blue:#5b6af0; --blue2:#7c8cf8; --blue-bg:#eef0ff;
+  --blue:#5b6af0; --blue-bg:#eef0ff;
   --green:#00c48c; --green-bg:#e8faf3;
   --red:#f0556a; --red-bg:#fff0f2;
   --orange:#f57c00; --orange-bg:#fff8e1;
-  --purple:#7b1fa2; --purple-bg:#f3e5f5;
   --muted:#7880aa; --text:#1a1d3a; --border:#e0e4f5;
   --noun:#2196f3; --noun-bg:#e3f2fd; --noun-br:#90caf9;
   --adj:#f57c00;  --adj-bg:#fff3e0;  --adj-br:#ffb74d;
@@ -20,208 +19,99 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-
-/* SCREENS */
 .screen { display:none; }
 .screen.on { display:flex; flex-direction:column; min-height:100vh; }
 
 /* LOBBY */
 #lobby { align-items:center; justify-content:center; padding:2rem 1rem; gap:1.5rem; }
 .logo h1 {
-  font-size:clamp(2.5rem,8vw,4.5rem); font-weight:900; letter-spacing:-2px; text-align:center;
+  font-size:clamp(2.5rem,8vw,4rem); font-weight:900; letter-spacing:-2px; text-align:center;
   background:linear-gradient(135deg,#5b6af0,#f0556a,#00c48c);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
 }
 .logo p { text-align:center; color:var(--muted); font-size:.85rem; letter-spacing:3px; text-transform:uppercase; margin-top:.3rem; }
-.card {
-  background:var(--white); border:2px solid var(--border); border-radius:18px;
-  padding:2rem; width:100%; max-width:440px;
-  display:flex; flex-direction:column; gap:1.1rem;
-  box-shadow:0 4px 24px rgba(91,106,240,.10);
-}
+.card { background:var(--white); border:2px solid var(--border); border-radius:18px; padding:2rem; width:100%; max-width:440px; display:flex; flex-direction:column; gap:1.1rem; box-shadow:0 4px 24px rgba(91,106,240,.10); }
 .card h2 { font-size:1.1rem; font-weight:800; color:var(--blue); }
 label { display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); font-weight:700; margin-bottom:.35rem; }
-input[type=text], input[type=number] {
-  width:100%; background:var(--surface); border:2px solid var(--border); border-radius:10px;
-  padding:.8rem 1rem; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; color:var(--text);
-  outline:none;
-}
-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(91,106,240,.12); }
-input::placeholder { color:#b0b8d4; font-weight:600; }
+input[type=text], input[type=number] { width:100%; background:var(--surface); border:2px solid var(--border); border-radius:10px; padding:.8rem 1rem; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; color:var(--text); outline:none; }
+input:focus { border-color:var(--blue); }
+input::placeholder { color:#b0b8d4; }
 .cats { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; }
-.cat {
-  padding:.7rem .4rem; border-radius:10px; border:2px solid var(--border);
-  background:var(--surface); cursor:pointer; font-family:'Nunito',sans-serif;
-  font-size:.82rem; font-weight:800; color:var(--muted);
-  display:flex; flex-direction:column; align-items:center; gap:.3rem;
-}
+.cat { padding:.7rem .4rem; border-radius:10px; border:2px solid var(--border); background:var(--surface); cursor:pointer; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:800; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:.3rem; }
 .cat span { font-size:1.3rem; }
 .cat.on.noun { border-color:var(--noun); background:var(--noun-bg); color:var(--noun); }
 .cat.on.adj  { border-color:var(--adj);  background:var(--adj-bg);  color:var(--adj);  }
 .cat.on.verb { border-color:var(--verb); background:var(--verb-bg); color:var(--verb); }
 hr { border:none; border-top:2px solid var(--border); }
-.btn {
-  width:100%; padding:.85rem; border-radius:12px; border:none; cursor:pointer;
-  font-family:'Nunito',sans-serif; font-size:1rem; font-weight:800;
-  display:flex; align-items:center; justify-content:center; gap:.5rem;
-}
-.btn-blue   { background:linear-gradient(135deg,#5b6af0,#7c8cf8); color:#fff; box-shadow:0 4px 18px rgba(91,106,240,.30); }
-.btn-green  { background:linear-gradient(135deg,#00c48c,#00e0a0); color:#fff; box-shadow:0 4px 18px rgba(0,196,140,.30); }
-.btn-gray   { background:var(--surface); color:var(--text); border:2px solid var(--border); }
-.btn-red    { background:var(--red-bg); color:var(--red); border:2px solid #ffc0c8; }
-.btn-orange { background:var(--orange-bg); color:var(--orange); border:2px solid #ffe082; font-size:.88rem; padding:.6rem 1rem; width:auto; }
+.btn { width:100%; padding:.85rem; border-radius:12px; border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:800; display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.btn-blue  { background:linear-gradient(135deg,#5b6af0,#7c8cf8); color:#fff; box-shadow:0 4px 18px rgba(91,106,240,.30); }
+.btn-green { background:linear-gradient(135deg,#00c48c,#00e0a0); color:#fff; }
+.btn-gray  { background:var(--surface); color:var(--text); border:2px solid var(--border); }
+.btn-red   { background:var(--red-bg); color:var(--red); border:2px solid #ffc0c8; }
+.btn-skip  { background:var(--orange-bg); color:var(--orange); border:2px solid #ffe082; font-size:.88rem; padding:.55rem 1rem; width:auto; }
 .btn:disabled { opacity:.35; cursor:not-allowed; }
-.row { display:flex; gap:.6rem; }
-.row input { flex:1; text-transform:uppercase; letter-spacing:4px; text-align:center; font-size:1.1rem; }
-
-/* STATUS BANNER */
-#status-banner {
-  display:none; background:var(--orange-bg); color:var(--orange);
-  border:2px solid #ffe082; border-radius:10px;
-  padding:.5rem 1rem; font-size:.8rem; font-weight:700; text-align:center;
-}
-
-/* WAITING */
-#waiting { align-items:center; justify-content:center; padding:2rem; gap:1.5rem; }
-.code-box {
-  font-family:monospace; font-size:clamp(2rem,10vw,3.5rem); font-weight:700;
-  color:var(--blue); background:var(--white); padding:1rem 2.5rem;
-  border-radius:18px; border:2px solid var(--noun-br);
-  letter-spacing:10px; cursor:pointer;
-  box-shadow:0 0 0 6px rgba(91,106,240,.06);
-}
-.code-label { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; text-align:center; margin-top:.4rem; }
-.plist { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.7rem; width:100%; max-width:500px; }
-.pchip {
-  background:var(--white); border:2px solid var(--border); border-radius:12px;
-  padding:.7rem 1rem; display:flex; align-items:center; gap:.6rem;
-  font-size:.9rem; font-weight:700;
-}
-.av {
-  width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--red));
-  color:#fff; display:flex; align-items:center; justify-content:center;
-  font-size:1rem; font-weight:900; flex-shrink:0;
-}
-.pchip.me { border-color:var(--blue); background:var(--blue-bg); }
-.wmsg { color:var(--muted); font-size:.9rem; font-weight:700; text-align:center; }
-.hbtns { display:none; flex-direction:column; gap:.6rem; width:100%; max-width:300px; }
-.gbtns { display:none; }
 
 /* GAME */
 #game { padding:1rem; gap:.7rem; max-width:980px; margin:0 auto; width:100%; }
 .ghead { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
 .gtitle { font-size:1.2rem; font-weight:900; color:var(--blue); }
 .sbar { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
-.spill {
-  background:var(--white); border:2px solid var(--border); border-radius:100px;
-  padding:.4rem 1rem; font-size:.85rem; font-weight:800;
-  display:flex; align-items:center; gap:.45rem;
-}
+.spill { background:var(--white); border:2px solid var(--border); border-radius:100px; padding:.4rem 1rem; font-size:.85rem; font-weight:800; display:flex; align-items:center; gap:.45rem; }
 .spill.turn { border-color:var(--blue); background:var(--blue-bg); }
-.spill .pts { font-family:monospace; color:var(--blue); font-weight:700; }
+.spill .pts { font-family:monospace; color:var(--blue); }
 .legend { display:flex; gap:1rem; flex-wrap:wrap; font-size:.73rem; color:var(--muted); font-weight:700; }
 .legend span { display:flex; align-items:center; gap:.3rem; }
 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
 .dot.noun{background:var(--noun);} .dot.adj{background:var(--adj);} .dot.verb{background:var(--verb);}
 .dot.reg{background:#43a047;} .dot.irr{background:#e53935;}
-.tbanner {
-  text-align:center; padding:.65rem 1rem; border-radius:12px;
-  font-size:.95rem; font-weight:800; border:2px solid var(--border); background:var(--white);
-}
-.tbanner.mine { border-color:var(--blue); background:var(--blue-bg); color:var(--blue); }
+.tbanner { text-align:center; padding:.65rem 1rem; border-radius:12px; font-size:.95rem; font-weight:800; border:2px solid var(--border); background:var(--white); }
+.tbanner.mine   { border-color:var(--blue); background:var(--blue-bg); color:var(--blue); }
 .tbanner.theirs { color:var(--muted); }
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:.55rem; }
 .cw { aspect-ratio:2/3; perspective:800px; cursor:pointer; }
 .cw.matched { pointer-events:none; }
-.ci {
-  position:relative; width:100%; height:100%;
-  transform-style:preserve-3d;
-  transition:transform .45s cubic-bezier(.34,1.15,.64,1);
-}
+.ci { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.34,1.15,.64,1); }
 .cw.flipped .ci, .cw.matched .ci { transform:rotateY(180deg); }
-.cf {
-  position:absolute; inset:0; border-radius:14px;
-  backface-visibility:hidden;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:.5rem; border:2px solid transparent; gap:.3rem; text-align:center;
-}
-.cb {
-  background:linear-gradient(135deg,#5b6af0,#7c8cf8);
-  overflow:hidden;
-}
-.cb::before {
-  content:''; position:absolute; inset:0;
-  background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.06) 10px,rgba(255,255,255,.06) 11px);
-}
+.cf { position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:.5rem; border:2px solid transparent; gap:.3rem; text-align:center; }
+.cb { background:linear-gradient(135deg,#5b6af0,#7c8cf8); overflow:hidden; }
+.cb::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.06) 10px,rgba(255,255,255,.06) 11px); }
 .cb-ico { font-size:1.8rem; position:relative; z-index:1; }
 .cf.noun { border-color:var(--noun-br); background:var(--noun-bg); transform:rotateY(180deg); }
 .cf.adj  { border-color:var(--adj-br);  background:var(--adj-bg);  transform:rotateY(180deg); }
 .cf.verb { border-color:var(--verb-br); background:var(--verb-bg); transform:rotateY(180deg); }
 .cw.matched .cf { background:var(--green-bg)!important; border-color:var(--green)!important; }
 .cw.matched .cword { color:#00a07a; }
-.cbadge {
-  font-size:.58rem; font-family:monospace; text-transform:uppercase; letter-spacing:1px;
-  padding:.12rem .45rem; border-radius:100px; font-weight:700;
-}
+.cbadge { font-size:.58rem; font-family:monospace; text-transform:uppercase; letter-spacing:1px; padding:.12rem .45rem; border-radius:100px; font-weight:700; }
 .cbadge.noun{background:#bbdefb;color:var(--noun);}
 .cbadge.adj {background:#ffe0b2;color:var(--adj);}
 .cbadge.verb{background:#e1bee7;color:var(--verb);}
-.tbadge {
-  font-size:.55rem; font-family:monospace; text-transform:uppercase;
-  padding:.1rem .4rem; border-radius:100px; font-weight:700;
-}
+.tbadge { font-size:.55rem; font-family:monospace; text-transform:uppercase; padding:.1rem .4rem; border-radius:100px; font-weight:700; }
 .tbadge.regular   {background:#e8f5e9;color:#43a047;}
 .tbadge.irregular {background:#ffebee;color:#e53935;}
 .cword { font-size:clamp(.75rem,2vw,1rem); font-weight:900; line-height:1.2; word-break:break-word; }
 .chint { font-size:clamp(.52rem,1.5vw,.65rem); color:var(--muted); font-style:italic; line-height:1.3; }
-@keyframes shake {
-  0%,100%{transform:rotateY(180deg) translateX(0)}
-  20%,60%{transform:rotateY(180deg) translateX(-5px)}
-  40%,80%{transform:rotateY(180deg) translateX(5px)}
-}
+@keyframes shake { 0%,100%{transform:rotateY(180deg) translateX(0)} 20%,60%{transform:rotateY(180deg) translateX(-5px)} 40%,80%{transform:rotateY(180deg) translateX(5px)} }
 .cw.wrong .ci { animation:shake .4s ease; }
 
 /* RESULTS */
 #results { align-items:center; justify-content:center; padding:2rem; gap:1.5rem; }
-.rcard {
-  background:var(--white); border:2px solid var(--border); border-radius:18px;
-  padding:2.5rem; width:100%; max-width:460px; text-align:center;
-  display:flex; flex-direction:column; gap:1.4rem;
-  box-shadow:0 4px 24px rgba(91,106,240,.10);
-}
+.rcard { background:var(--white); border:2px solid var(--border); border-radius:18px; padding:2.5rem; width:100%; max-width:460px; text-align:center; display:flex; flex-direction:column; gap:1.4rem; box-shadow:0 4px 24px rgba(91,106,240,.10); }
 .rtrophy { font-size:4rem; }
-.rtitle {
-  font-size:2rem; font-weight:900; letter-spacing:-1px;
-  background:linear-gradient(135deg,var(--blue),var(--red));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-}
+.rtitle { font-size:2rem; font-weight:900; letter-spacing:-1px; background:linear-gradient(135deg,var(--blue),var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 .podium { display:flex; flex-direction:column; gap:.6rem; }
-.prow {
-  display:flex; align-items:center; background:var(--surface);
-  border-radius:12px; padding:.8rem 1.2rem; border:2px solid var(--border);
-}
+.prow { display:flex; align-items:center; background:var(--surface); border-radius:12px; padding:.8rem 1.2rem; border:2px solid var(--border); }
 .prow.win { border-color:var(--green); background:var(--green-bg); }
-.prow .medal { font-size:1.2rem; width:28px; }
-.prow .pname { flex:1; text-align:left; font-weight:800; padding:0 .8rem; }
-.prow .pscore { font-family:monospace; font-weight:700; color:var(--blue); }
+.medal { font-size:1.2rem; width:28px; }
+.pname { flex:1; text-align:left; font-weight:800; padding:0 .8rem; }
+.pscore { font-family:monospace; font-weight:700; color:var(--blue); }
 
 /* TOAST */
-#toast {
-  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(80px);
-  border-radius:100px; padding:.7rem 1.6rem;
-  font-size:.9rem; font-weight:800; z-index:999;
-  transition:transform .3s, opacity .3s; opacity:0; pointer-events:none; white-space:nowrap;
-  border:2px solid transparent;
-}
-#toast.on { transform:translateX(-50%) translateY(0); opacity:1; }
+#toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(80px); border-radius:100px; padding:.7rem 1.6rem; font-size:.9rem; font-weight:800; z-index:999; transition:transform .3s, opacity .3s; opacity:0; pointer-events:none; white-space:nowrap; border:2px solid transparent; }
+#toast.on  { transform:translateX(-50%) translateY(0); opacity:1; }
 #toast.ok  { background:var(--green-bg); border-color:var(--green); color:#00a07a; }
 #toast.err { background:var(--red-bg);   border-color:#ffc0c8;      color:var(--red); }
 #toast.inf { background:var(--blue-bg);  border-color:var(--noun-br);color:var(--blue); }
-
-@media(max-width:480px){
-  .grid{grid-template-columns:repeat(5,1fr);gap:.35rem;}
-  .cword{font-size:.68rem;} .chint{font-size:.5rem;}
-}
+@media(max-width:480px){ .grid{grid-template-columns:repeat(5,1fr);gap:.35rem;} .cword{font-size:.68rem;} .chint{font-size:.5rem;} }
 </style>
 </head>
 <body>
@@ -230,7 +120,7 @@ hr { border:none; border-top:2px solid var(--border); }
 <div id="lobby" class="screen on">
   <div class="logo"><h1>WordMatch</h1><p>English Memory Game</p></div>
   <div class="card">
-    <h2>🎮 Create a Room</h2>
+    <h2>🎮 Play Game</h2>
     <div>
       <label>Your Name</label>
       <input type="text" id="host-name" placeholder="Enter your name" maxlength="20">
@@ -247,37 +137,7 @@ hr { border:none; border-top:2px solid var(--border); }
       <label>Number of Pairs</label>
       <input type="number" id="pair-count" value="8" min="4" max="30">
     </div>
-    <button type="button" class="btn btn-blue" id="btn-create">✨ Create Room</button>
-    <div id="status-banner">⚡ Firebase not configured — playing in Solo Mode</div>
-    <hr>
-    <h2>🔗 Join a Room</h2>
-    <div>
-      <label>Your Name</label>
-      <input type="text" id="join-name" placeholder="Enter your name" maxlength="20">
-    </div>
-    <div class="row">
-      <input type="text" id="room-code" placeholder="ROOM CODE" maxlength="6">
-      <button type="button" class="btn btn-gray" id="btn-join" style="width:auto;padding:.8rem 1.2rem">Join →</button>
-    </div>
-  </div>
-</div>
-
-<!-- WAITING -->
-<div id="waiting" class="screen">
-  <div style="text-align:center">
-    <p style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:.5rem">Room Code</p>
-    <div class="code-box" id="code-display">----</div>
-    <div class="code-label">Tap to copy · share with friends</div>
-  </div>
-  <p style="font-size:.85rem;color:var(--muted);font-weight:700">Players in Room</p>
-  <div class="plist" id="plist"></div>
-  <p class="wmsg" id="wmsg">Waiting for players…</p>
-  <div class="hbtns" id="hbtns">
-    <button type="button" class="btn btn-green" id="btn-start">▶ Start Game</button>
-    <button type="button" class="btn btn-red"   id="btn-leave-h">Leave Room</button>
-  </div>
-  <div class="gbtns" id="gbtns">
-    <button type="button" class="btn btn-red" id="btn-leave-g">Leave Room</button>
+    <button type="button" class="btn btn-blue" id="btn-create">✨ Start Game</button>
   </div>
 </div>
 
@@ -287,453 +147,273 @@ hr { border:none; border-top:2px solid var(--border); }
     <span class="gtitle">⚡ WordMatch</span>
     <div class="sbar">
       <div id="sbar"></div>
-      <button type="button" class="btn btn-orange" id="btn-skip" disabled>⏭ Skip</button>
+      <button type="button" class="btn btn-skip" id="btn-skip" disabled>⏭ Skip</button>
+      <button type="button" class="btn btn-gray" id="btn-quit" style="width:auto;padding:.55rem 1rem;font-size:.88rem">🏠 Quit</button>
     </div>
   </div>
   <div class="legend" id="legend"></div>
-  <div class="tbanner" id="tbanner">Waiting…</div>
+  <div class="tbanner mine" id="tbanner">✨ Your turn! Flip two cards.</div>
   <div class="grid" id="grid"></div>
 </div>
 
 <!-- RESULTS -->
 <div id="results" class="screen">
   <div class="rcard">
-    <div class="rtrophy" id="rtrophy">🏆</div>
-    <div class="rtitle" id="rtitle">Game Over!</div>
+    <div class="rtrophy">🏆</div>
+    <div class="rtitle">You Win! 🎉</div>
     <div class="podium" id="podium"></div>
     <div style="display:flex;flex-direction:column;gap:.6rem">
-      <button type="button" class="btn btn-blue"  id="btn-again">🔄 Play Again</button>
-      <button type="button" class="btn btn-gray"  id="btn-lobby">🏠 Back to Lobby</button>
+      <button type="button" class="btn btn-blue" id="btn-again">🔄 Play Again</button>
+      <button type="button" class="btn btn-gray" id="btn-lobby">🏠 Back to Lobby</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-app.js" onerror="console.warn('firebase-app failed')"></script>
-<script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-database.js" onerror="console.warn('firebase-db failed')"></script>
 <script>
-// ── FIREBASE CONFIG ──────────────────────────────
-var firebaseConfig = {
-  apiKey: "AIzaSyDEMO_REPLACE_WITH_YOUR_KEY",
-  authDomain: "wordmatch-demo.firebaseapp.com",
-  databaseURL: "https://wordmatch-demo-default-rtdb.firebaseio.com",
-  projectId: "wordmatch-demo",
-  storageBucket: "wordmatch-demo.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000"
-};
-
-// ── WORD BANK ────────────────────────────────────
 var WORDS = {
   nouns: [
-    {word:"child",  hint:"young human",      match:"children", mhint:"plural", type:"irregular"},
-    {word:"foot",   hint:"lower body part",  match:"feet",     mhint:"plural", type:"irregular"},
-    {word:"tooth",  hint:"in your mouth",    match:"teeth",    mhint:"plural", type:"irregular"},
-    {word:"mouse",  hint:"small rodent",     match:"mice",     mhint:"plural", type:"irregular"},
-    {word:"person", hint:"a human being",    match:"people",   mhint:"plural", type:"irregular"},
-    {word:"goose",  hint:"large water bird", match:"geese",    mhint:"plural", type:"irregular"},
-    {word:"man",    hint:"adult male",       match:"men",      mhint:"plural", type:"irregular"},
-    {word:"woman",  hint:"adult female",     match:"women",    mhint:"plural", type:"irregular"},
-    {word:"ox",     hint:"farm animal",      match:"oxen",     mhint:"plural", type:"irregular"},
-    {word:"leaf",   hint:"part of a tree",   match:"leaves",   mhint:"plural", type:"irregular"},
-    {word:"knife",  hint:"cutting tool",     match:"knives",   mhint:"plural", type:"irregular"},
-    {word:"wolf",   hint:"wild canine",      match:"wolves",   mhint:"plural", type:"irregular"},
-    {word:"life",   hint:"existence",        match:"lives",    mhint:"plural", type:"irregular"},
-    {word:"cactus", hint:"desert plant",     match:"cacti",    mhint:"plural", type:"irregular"},
-    {word:"crisis", hint:"dangerous moment", match:"crises",   mhint:"plural", type:"irregular"},
-    {word:"book",   hint:"you read it",      match:"books",    mhint:"plural", type:"regular"},
-    {word:"dog",    hint:"common pet",       match:"dogs",     mhint:"plural", type:"regular"},
-    {word:"box",    hint:"a container",      match:"boxes",    mhint:"plural", type:"regular"},
-    {word:"bus",    hint:"public transport", match:"buses",    mhint:"plural", type:"regular"},
-    {word:"city",   hint:"urban area",       match:"cities",   mhint:"plural", type:"regular"},
-    {word:"family", hint:"parents+children", match:"families", mhint:"plural", type:"regular"},
-    {word:"story",  hint:"a narrative",      match:"stories",  mhint:"plural", type:"regular"},
-    {word:"dish",   hint:"plate for food",   match:"dishes",   mhint:"plural", type:"regular"},
-    {word:"church", hint:"worship place",    match:"churches", mhint:"plural", type:"regular"},
-    {word:"baby",   hint:"very young child", match:"babies",   mhint:"plural", type:"regular"}
+    {w:"child",  h:"young human",      m:"children", mh:"plural", t:"irregular"},
+    {w:"foot",   h:"lower body part",  m:"feet",     mh:"plural", t:"irregular"},
+    {w:"tooth",  h:"in your mouth",    m:"teeth",    mh:"plural", t:"irregular"},
+    {w:"mouse",  h:"small rodent",     m:"mice",     mh:"plural", t:"irregular"},
+    {w:"person", h:"a human being",    m:"people",   mh:"plural", t:"irregular"},
+    {w:"goose",  h:"large water bird", m:"geese",    mh:"plural", t:"irregular"},
+    {w:"man",    h:"adult male",       m:"men",      mh:"plural", t:"irregular"},
+    {w:"woman",  h:"adult female",     m:"women",    mh:"plural", t:"irregular"},
+    {w:"ox",     h:"farm animal",      m:"oxen",     mh:"plural", t:"irregular"},
+    {w:"leaf",   h:"part of a tree",   m:"leaves",   mh:"plural", t:"irregular"},
+    {w:"knife",  h:"cutting tool",     m:"knives",   mh:"plural", t:"irregular"},
+    {w:"wolf",   h:"wild canine",      m:"wolves",   mh:"plural", t:"irregular"},
+    {w:"cactus", h:"desert plant",     m:"cacti",    mh:"plural", t:"irregular"},
+    {w:"book",   h:"you read it",      m:"books",    mh:"plural", t:"regular"},
+    {w:"box",    h:"a container",      m:"boxes",    mh:"plural", t:"regular"},
+    {w:"bus",    h:"public transport", m:"buses",    mh:"plural", t:"regular"},
+    {w:"city",   h:"urban area",       m:"cities",   mh:"plural", t:"regular"},
+    {w:"family", h:"parents+children", m:"families", mh:"plural", t:"regular"},
+    {w:"story",  h:"a narrative",      m:"stories",  mh:"plural", t:"regular"},
+    {w:"dish",   h:"plate for food",   m:"dishes",   mh:"plural", t:"regular"},
+    {w:"baby",   h:"very young child", m:"babies",   mh:"plural", t:"regular"},
+    {w:"dog",    h:"common pet",       m:"dogs",     mh:"plural", t:"regular"},
+    {w:"church", h:"worship place",    m:"churches", mh:"plural", t:"regular"},
+    {w:"class",  h:"group of students",m:"classes",  mh:"plural", t:"regular"},
+    {w:"bench",  h:"long seat",        m:"benches",  mh:"plural", t:"regular"}
   ],
   adjectives: [
-    {word:"good",   hint:"positive quality", match:"better",   mhint:"comparative", type:"irregular"},
-    {word:"bad",    hint:"negative quality", match:"worse",    mhint:"comparative", type:"irregular"},
-    {word:"far",    hint:"distant",          match:"farther",  mhint:"comparative", type:"irregular"},
-    {word:"much",   hint:"large amount",     match:"more",     mhint:"comparative", type:"irregular"},
-    {word:"little", hint:"small amount",     match:"less",     mhint:"comparative", type:"irregular"},
-    {word:"old",    hint:"not new",          match:"elder",    mhint:"comparative", type:"irregular"},
-    {word:"late",   hint:"not on time",      match:"latter",   mhint:"comparative", type:"irregular"},
-    {word:"tall",   hint:"high stature",     match:"taller",   mhint:"comparative", type:"regular"},
-    {word:"short",  hint:"not tall",         match:"shorter",  mhint:"comparative", type:"regular"},
-    {word:"fast",   hint:"high speed",       match:"faster",   mhint:"comparative", type:"regular"},
-    {word:"slow",   hint:"low speed",        match:"slower",   mhint:"comparative", type:"regular"},
-    {word:"smart",  hint:"intelligent",      match:"smarter",  mhint:"comparative", type:"regular"},
-    {word:"clean",  hint:"not dirty",        match:"cleaner",  mhint:"comparative", type:"regular"},
-    {word:"warm",   hint:"slightly hot",     match:"warmer",   mhint:"comparative", type:"regular"},
-    {word:"cold",   hint:"low temperature",  match:"colder",   mhint:"comparative", type:"regular"},
-    {word:"young",  hint:"not old",          match:"younger",  mhint:"comparative", type:"regular"},
-    {word:"bright", hint:"shining",          match:"brighter", mhint:"comparative", type:"regular"},
-    {word:"cheap",  hint:"low price",        match:"cheaper",  mhint:"comparative", type:"regular"},
-    {word:"thick",  hint:"not thin",         match:"thicker",  mhint:"comparative", type:"regular"},
-    {word:"long",   hint:"not short (length)",match:"longer",  mhint:"comparative", type:"regular"}
+    {w:"good",   h:"positive quality", m:"better",   mh:"comparative", t:"irregular"},
+    {w:"bad",    h:"negative quality", m:"worse",    mh:"comparative", t:"irregular"},
+    {w:"far",    h:"distant",          m:"farther",  mh:"comparative", t:"irregular"},
+    {w:"much",   h:"large amount",     m:"more",     mh:"comparative", t:"irregular"},
+    {w:"little", h:"small amount",     m:"less",     mh:"comparative", t:"irregular"},
+    {w:"old",    h:"not new",          m:"elder",    mh:"comparative", t:"irregular"},
+    {w:"late",   h:"not on time",      m:"latter",   mh:"comparative", t:"irregular"},
+    {w:"tall",   h:"high stature",     m:"taller",   mh:"comparative", t:"regular"},
+    {w:"short",  h:"not tall",         m:"shorter",  mh:"comparative", t:"regular"},
+    {w:"fast",   h:"high speed",       m:"faster",   mh:"comparative", t:"regular"},
+    {w:"slow",   h:"low speed",        m:"slower",   mh:"comparative", t:"regular"},
+    {w:"smart",  h:"intelligent",      m:"smarter",  mh:"comparative", t:"regular"},
+    {w:"clean",  h:"not dirty",        m:"cleaner",  mh:"comparative", t:"regular"},
+    {w:"warm",   h:"slightly hot",     m:"warmer",   mh:"comparative", t:"regular"},
+    {w:"cold",   h:"low temperature",  m:"colder",   mh:"comparative", t:"regular"},
+    {w:"young",  h:"not old",          m:"younger",  mh:"comparative", t:"regular"},
+    {w:"bright", h:"shining",          m:"brighter", mh:"comparative", t:"regular"},
+    {w:"cheap",  h:"low price",        m:"cheaper",  mh:"comparative", t:"regular"},
+    {w:"thick",  h:"not thin",         m:"thicker",  mh:"comparative", t:"regular"},
+    {w:"long",   h:"not short (length)",m:"longer",  mh:"comparative", t:"regular"}
   ],
   verbs: [
-    {word:"go",     hint:"to move away",      match:"went",    mhint:"past tense", type:"irregular"},
-    {word:"eat",    hint:"to consume food",   match:"ate",     mhint:"past tense", type:"irregular"},
-    {word:"run",    hint:"to sprint",         match:"ran",     mhint:"past tense", type:"irregular"},
-    {word:"see",    hint:"to look at",        match:"saw",     mhint:"past tense", type:"irregular"},
-    {word:"give",   hint:"to offer",          match:"gave",    mhint:"past tense", type:"irregular"},
-    {word:"take",   hint:"to grab",           match:"took",    mhint:"past tense", type:"irregular"},
-    {word:"come",   hint:"to arrive",         match:"came",    mhint:"past tense", type:"irregular"},
-    {word:"know",   hint:"to be aware of",    match:"knew",    mhint:"past tense", type:"irregular"},
-    {word:"think",  hint:"to ponder",         match:"thought", mhint:"past tense", type:"irregular"},
-    {word:"speak",  hint:"to talk",           match:"spoke",   mhint:"past tense", type:"irregular"},
-    {word:"break",  hint:"to shatter",        match:"broke",   mhint:"past tense", type:"irregular"},
-    {word:"bring",  hint:"to carry here",     match:"brought", mhint:"past tense", type:"irregular"},
-    {word:"buy",    hint:"to purchase",       match:"bought",  mhint:"past tense", type:"irregular"},
-    {word:"catch",  hint:"to grab in motion", match:"caught",  mhint:"past tense", type:"irregular"},
-    {word:"draw",   hint:"to sketch",         match:"drew",    mhint:"past tense", type:"irregular"},
-    {word:"drink",  hint:"swallow liquid",    match:"drank",   mhint:"past tense", type:"irregular"},
-    {word:"drive",  hint:"operate a car",     match:"drove",   mhint:"past tense", type:"irregular"},
-    {word:"fall",   hint:"to drop down",      match:"fell",    mhint:"past tense", type:"irregular"},
-    {word:"feel",   hint:"to sense",          match:"felt",    mhint:"past tense", type:"irregular"},
-    {word:"find",   hint:"to locate",         match:"found",   mhint:"past tense", type:"irregular"},
-    {word:"fly",    hint:"to soar",           match:"flew",    mhint:"past tense", type:"irregular"},
-    {word:"grow",   hint:"to get bigger",     match:"grew",    mhint:"past tense", type:"irregular"},
-    {word:"hold",   hint:"to grip",           match:"held",    mhint:"past tense", type:"irregular"},
-    {word:"keep",   hint:"to retain",         match:"kept",    mhint:"past tense", type:"irregular"},
-    {word:"leave",  hint:"to depart",         match:"left",    mhint:"past tense", type:"irregular"},
-    {word:"lose",   hint:"to misplace",       match:"lost",    mhint:"past tense", type:"irregular"},
-    {word:"make",   hint:"to create",         match:"made",    mhint:"past tense", type:"irregular"},
-    {word:"meet",   hint:"to encounter",      match:"met",     mhint:"past tense", type:"irregular"},
-    {word:"pay",    hint:"to give money",     match:"paid",    mhint:"past tense", type:"irregular"},
-    {word:"say",    hint:"to express words",  match:"said",    mhint:"past tense", type:"irregular"},
-    {word:"sell",   hint:"trade for money",   match:"sold",    mhint:"past tense", type:"irregular"},
-    {word:"send",   hint:"to dispatch",       match:"sent",    mhint:"past tense", type:"irregular"},
-    {word:"sing",   hint:"to make music",     match:"sang",    mhint:"past tense", type:"irregular"},
-    {word:"sit",    hint:"to be seated",      match:"sat",     mhint:"past tense", type:"irregular"},
-    {word:"sleep",  hint:"rest at night",     match:"slept",   mhint:"past tense", type:"irregular"},
-    {word:"stand",  hint:"to be upright",     match:"stood",   mhint:"past tense", type:"irregular"},
-    {word:"swim",   hint:"move in water",     match:"swam",    mhint:"past tense", type:"irregular"},
-    {word:"teach",  hint:"to instruct",       match:"taught",  mhint:"past tense", type:"irregular"},
-    {word:"tell",   hint:"to inform",         match:"told",    mhint:"past tense", type:"irregular"},
-    {word:"write",  hint:"put words on paper",match:"wrote",   mhint:"past tense", type:"irregular"},
-    {word:"walk",   hint:"move on foot",      match:"walked",  mhint:"past tense", type:"regular"},
-    {word:"talk",   hint:"have a conversation",match:"talked", mhint:"past tense", type:"regular"},
-    {word:"play",   hint:"to have fun",       match:"played",  mhint:"past tense", type:"regular"},
-    {word:"watch",  hint:"to observe",        match:"watched", mhint:"past tense", type:"regular"},
-    {word:"cook",   hint:"prepare food",      match:"cooked",  mhint:"past tense", type:"regular"},
-    {word:"open",   hint:"to unlock/reveal",  match:"opened",  mhint:"past tense", type:"regular"},
-    {word:"close",  hint:"to shut",           match:"closed",  mhint:"past tense", type:"regular"},
-    {word:"start",  hint:"to begin",          match:"started", mhint:"past tense", type:"regular"},
-    {word:"finish", hint:"to complete",       match:"finished",mhint:"past tense", type:"regular"},
-    {word:"help",   hint:"to assist",         match:"helped",  mhint:"past tense", type:"regular"},
-    {word:"jump",   hint:"to leap",           match:"jumped",  mhint:"past tense", type:"regular"},
-    {word:"call",   hint:"to phone or shout", match:"called",  mhint:"past tense", type:"regular"},
-    {word:"ask",    hint:"to inquire",        match:"asked",   mhint:"past tense", type:"regular"},
-    {word:"push",   hint:"to press forward",  match:"pushed",  mhint:"past tense", type:"regular"},
-    {word:"pull",   hint:"to drag toward you",match:"pulled",  mhint:"past tense", type:"regular"},
-    {word:"move",   hint:"change position",   match:"moved",   mhint:"past tense", type:"regular"},
-    {word:"stop",   hint:"to cease",          match:"stopped", mhint:"past tense", type:"regular"},
-    {word:"drop",   hint:"to let fall",       match:"dropped", mhint:"past tense", type:"regular"},
-    {word:"love",   hint:"to feel affection", match:"loved",   mhint:"past tense", type:"regular"}
+    {w:"go",    h:"to move away",       m:"went",    mh:"past tense", t:"irregular"},
+    {w:"eat",   h:"to consume food",    m:"ate",     mh:"past tense", t:"irregular"},
+    {w:"run",   h:"to sprint",          m:"ran",     mh:"past tense", t:"irregular"},
+    {w:"see",   h:"to look at",         m:"saw",     mh:"past tense", t:"irregular"},
+    {w:"give",  h:"to offer",           m:"gave",    mh:"past tense", t:"irregular"},
+    {w:"take",  h:"to grab",            m:"took",    mh:"past tense", t:"irregular"},
+    {w:"come",  h:"to arrive",          m:"came",    mh:"past tense", t:"irregular"},
+    {w:"know",  h:"to be aware of",     m:"knew",    mh:"past tense", t:"irregular"},
+    {w:"think", h:"to ponder",          m:"thought", mh:"past tense", t:"irregular"},
+    {w:"speak", h:"to talk",            m:"spoke",   mh:"past tense", t:"irregular"},
+    {w:"break", h:"to shatter",         m:"broke",   mh:"past tense", t:"irregular"},
+    {w:"bring", h:"to carry here",      m:"brought", mh:"past tense", t:"irregular"},
+    {w:"buy",   h:"to purchase",        m:"bought",  mh:"past tense", t:"irregular"},
+    {w:"catch", h:"to grab in motion",  m:"caught",  mh:"past tense", t:"irregular"},
+    {w:"draw",  h:"to sketch",          m:"drew",    mh:"past tense", t:"irregular"},
+    {w:"drink", h:"swallow liquid",     m:"drank",   mh:"past tense", t:"irregular"},
+    {w:"drive", h:"operate a car",      m:"drove",   mh:"past tense", t:"irregular"},
+    {w:"fall",  h:"to drop down",       m:"fell",    mh:"past tense", t:"irregular"},
+    {w:"feel",  h:"to sense",           m:"felt",    mh:"past tense", t:"irregular"},
+    {w:"find",  h:"to locate",          m:"found",   mh:"past tense", t:"irregular"},
+    {w:"fly",   h:"to soar",            m:"flew",    mh:"past tense", t:"irregular"},
+    {w:"grow",  h:"to get bigger",      m:"grew",    mh:"past tense", t:"irregular"},
+    {w:"hold",  h:"to grip",            m:"held",    mh:"past tense", t:"irregular"},
+    {w:"keep",  h:"to retain",          m:"kept",    mh:"past tense", t:"irregular"},
+    {w:"leave", h:"to depart",          m:"left",    mh:"past tense", t:"irregular"},
+    {w:"lose",  h:"to misplace",        m:"lost",    mh:"past tense", t:"irregular"},
+    {w:"make",  h:"to create",          m:"made",    mh:"past tense", t:"irregular"},
+    {w:"meet",  h:"to encounter",       m:"met",     mh:"past tense", t:"irregular"},
+    {w:"pay",   h:"to give money",      m:"paid",    mh:"past tense", t:"irregular"},
+    {w:"say",   h:"to express words",   m:"said",    mh:"past tense", t:"irregular"},
+    {w:"sell",  h:"trade for money",    m:"sold",    mh:"past tense", t:"irregular"},
+    {w:"send",  h:"to dispatch",        m:"sent",    mh:"past tense", t:"irregular"},
+    {w:"sing",  h:"to make music",      m:"sang",    mh:"past tense", t:"irregular"},
+    {w:"sit",   h:"to be seated",       m:"sat",     mh:"past tense", t:"irregular"},
+    {w:"sleep", h:"rest at night",      m:"slept",   mh:"past tense", t:"irregular"},
+    {w:"stand", h:"to be upright",      m:"stood",   mh:"past tense", t:"irregular"},
+    {w:"swim",  h:"move in water",      m:"swam",    mh:"past tense", t:"irregular"},
+    {w:"teach", h:"to instruct",        m:"taught",  mh:"past tense", t:"irregular"},
+    {w:"tell",  h:"to inform",          m:"told",    mh:"past tense", t:"irregular"},
+    {w:"write", h:"put words on paper", m:"wrote",   mh:"past tense", t:"irregular"},
+    {w:"walk",  h:"move on foot",       m:"walked",  mh:"past tense", t:"regular"},
+    {w:"talk",  h:"have a conversation",m:"talked",  mh:"past tense", t:"regular"},
+    {w:"play",  h:"to have fun",        m:"played",  mh:"past tense", t:"regular"},
+    {w:"watch", h:"to observe",         m:"watched", mh:"past tense", t:"regular"},
+    {w:"cook",  h:"prepare food",       m:"cooked",  mh:"past tense", t:"regular"},
+    {w:"open",  h:"to unlock/reveal",   m:"opened",  mh:"past tense", t:"regular"},
+    {w:"close", h:"to shut",            m:"closed",  mh:"past tense", t:"regular"},
+    {w:"start", h:"to begin",           m:"started", mh:"past tense", t:"regular"},
+    {w:"finish",h:"to complete",        m:"finished",mh:"past tense", t:"regular"},
+    {w:"help",  h:"to assist",          m:"helped",  mh:"past tense", t:"regular"},
+    {w:"jump",  h:"to leap",            m:"jumped",  mh:"past tense", t:"regular"},
+    {w:"call",  h:"to phone or shout",  m:"called",  mh:"past tense", t:"regular"},
+    {w:"ask",   h:"to inquire",         m:"asked",   mh:"past tense", t:"regular"},
+    {w:"move",  h:"change position",    m:"moved",   mh:"past tense", t:"regular"},
+    {w:"stop",  h:"to cease",           m:"stopped", mh:"past tense", t:"regular"},
+    {w:"drop",  h:"to let fall",        m:"dropped", mh:"past tense", t:"regular"},
+    {w:"love",  h:"to feel affection",  m:"loved",   mh:"past tense", t:"regular"}
   ]
 };
 
-// ── STATE ────────────────────────────────────────
-var db         = null;
-var inRoom     = false;
-var roomCode   = '';
-var myName     = '';
-var myRole     = '';
-var localMode  = false;
-var gameLoaded = false;
-var selectedCats = {nouns:true, adjectives:true, verbs:true};
-var pairCount  = 8;
-var cards      = [];
-var flipped    = [];
-var matched    = {};
-var scores     = {};
-var turnOrder  = [];
-var turnIdx    = 0;
-var canFlip    = false;
+/* ── STATE ── */
+var myName   = '';
+var pairCount = 8;
+var selCats  = {nouns:true, adjectives:true, verbs:true};
+var cards    = [];
+var flipped  = [];
+var matched  = {};
+var score    = 0;
+var canFlip  = false;
 
-// ── HELPERS ──────────────────────────────────────
+/* ── HELPERS ── */
 function show(id) {
   var all = document.querySelectorAll('.screen');
-  for (var i=0; i<all.length; i++) all[i].classList.remove('on');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
   document.getElementById(id).classList.add('on');
 }
 
-var toastTimer = null;
+var toastT = null;
 function toast(msg, type) {
   var t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'on ' + (type || 'inf');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { t.className = ''; }, 2800);
-}
-
-function sanitize(s) {
-  return s.replace(/[.#$\/\[\]]/g, '_');
-}
-
-function randCode() {
-  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var code = '';
-  for (var i=0; i<6; i++) code += chars[Math.floor(Math.random()*chars.length)];
-  return code;
+  clearTimeout(toastT);
+  toastT = setTimeout(function() { t.className = ''; }, 2500);
 }
 
 function shuffle(arr) {
-  for (var i=arr.length-1; i>0; i--) {
-    var j = Math.floor(Math.random()*(i+1));
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
     var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
   }
   return arr;
 }
 
-function catCls(category) {
-  if (category === 'adjectives') return 'adj';
-  if (category === 'nouns')      return 'noun';
+function catCls(cat) {
+  if (cat === 'adjectives') return 'adj';
+  if (cat === 'nouns')      return 'noun';
   return 'verb';
 }
 
-// ── TOGGLE CATEGORY ──────────────────────────────
+/* ── TOGGLE CAT ── */
 function toggleCat(btn) {
   var cat = btn.getAttribute('data-cat');
-  var active = Object.keys(selectedCats).filter(function(k){ return selectedCats[k]; });
+  var count = 0;
+  var keys = Object.keys(selCats);
+  for (var i = 0; i < keys.length; i++) { if (selCats[keys[i]]) count++; }
   if (btn.classList.contains('on')) {
-    if (active.length <= 1) { toast('Select at least one category', 'err'); return; }
+    if (count <= 1) { toast('Select at least one category', 'err'); return; }
     btn.classList.remove('on');
-    selectedCats[cat] = false;
+    selCats[cat] = false;
   } else {
     btn.classList.add('on');
-    selectedCats[cat] = true;
+    selCats[cat] = true;
   }
 }
 
-// ── BUILD DECK ───────────────────────────────────
-function buildDeck(cats, count) {
+/* ── BUILD DECK ── */
+function buildDeck() {
   var pool = [];
-  for (var i=0; i<cats.length; i++) {
-    var c = cats[i];
-    var words = WORDS[c] || [];
-    for (var j=0; j<words.length; j++) {
-      pool.push({word:words[j].word, hint:words[j].hint, match:words[j].match, mhint:words[j].mhint, type:words[j].type, category:c});
+  var keys = Object.keys(selCats);
+  for (var k = 0; k < keys.length; k++) {
+    if (!selCats[keys[k]]) continue;
+    var list = WORDS[keys[k]];
+    for (var j = 0; j < list.length; j++) {
+      pool.push({word:list[j].w, hint:list[j].h, match:list[j].m, mhint:list[j].mh, type:list[j].t, cat:keys[k]});
     }
   }
   shuffle(pool);
-  var pairs = pool.slice(0, count);
-  var deck = [];
-  for (var k=0; k<pairs.length; k++) {
-    var p = pairs[k];
-    deck.push({id:'A'+k, word:p.word,  hint:p.hint,  category:p.category, pairId:k, side:'A', wtype:p.type});
-    deck.push({id:'B'+k, word:p.match, hint:p.mhint, category:p.category, pairId:k, side:'B', wtype:p.type});
+  var pairs = pool.slice(0, pairCount);
+  var deck  = [];
+  for (var i = 0; i < pairs.length; i++) {
+    var p = pairs[i];
+    deck.push({word:p.word,  hint:p.hint,  cat:p.cat, pid:i, side:'A', wt:p.type});
+    deck.push({word:p.match, hint:p.mhint, cat:p.cat, pid:i, side:'B', wt:p.type});
   }
-  shuffle(deck);
-  return deck;
+  return shuffle(deck);
 }
 
-// ── CREATE ROOM ──────────────────────────────────
-function createRoom() {
-  var name = document.getElementById('host-name').value.trim();
-  if (!name) { toast('Enter your name first', 'err'); return; }
-  var pc = parseInt(document.getElementById('pair-count').value) || 8;
-  pairCount = Math.max(4, Math.min(30, pc));
-  myName = name;
-  myRole = 'host';
-
-  if (!db) {
-    roomCode = 'LOCAL';
-    startLocalGame();
-    return;
-  }
-
-  roomCode = randCode();
-  var cats = Object.keys(selectedCats).filter(function(k){ return selectedCats[k]; });
-  db.ref('rooms/' + roomCode).set({
-    host: sanitize(name),
-    status: 'waiting',
-    categories: cats,
-    pairCount: pairCount,
-    players: {}
-  }).then(function() {
-    db.ref('rooms/' + roomCode + '/players/' + sanitize(name)).set({name:name, score:0, role:'host'});
-    enterWaiting();
-  }).catch(function(e) {
-    toast('Firebase error: ' + e.message, 'err');
-  });
-}
-
-// ── JOIN ROOM ────────────────────────────────────
-function joinRoom() {
-  var name = document.getElementById('join-name').value.trim();
-  var code = document.getElementById('room-code').value.trim().toUpperCase();
-  if (!name) { toast('Enter your name first', 'err'); return; }
-  if (code.length < 4) { toast('Enter a room code', 'err'); return; }
-  if (!db) { toast('Firebase not configured', 'err'); return; }
-
-  myName = name; myRole = 'player'; roomCode = code;
-  db.ref('rooms/' + code).once('value').then(function(snap) {
-    if (!snap.exists()) { toast('Room not found', 'err'); return; }
-    var room = snap.val();
-    if (room.status !== 'waiting') { toast('Game already started', 'err'); return; }
-    db.ref('rooms/' + code + '/players/' + sanitize(name)).set({name:name, score:0, role:'player'});
-    enterWaiting();
-  }).catch(function(e) {
-    toast('Error: ' + e.message, 'err');
-  });
-}
-
-// ── ENTER WAITING ROOM ───────────────────────────
-function enterWaiting() {
-  inRoom = true;
-  show('waiting');
-  document.getElementById('code-display').textContent = roomCode;
-  document.getElementById('hbtns').style.display = myRole === 'host' ? 'flex' : 'none';
-  document.getElementById('gbtns').style.display = myRole !== 'host' ? 'block' : 'none';
-
-  db.ref('rooms/' + roomCode).on('value', function(snap) {
-    if (!snap.exists()) { leaveRoom(); return; }
-    var room = snap.val();
-    var players = room.players || {};
-    var pkeys = Object.keys(players);
-    var list = document.getElementById('plist');
-    list.innerHTML = '';
-    for (var i=0; i<pkeys.length; i++) {
-      var p = players[pkeys[i]];
-      var chip = document.createElement('div');
-      chip.className = 'pchip' + (p.name === myName ? ' me' : '');
-      chip.innerHTML = '<div class="av">' + p.name[0].toUpperCase() + '</div><span>' + p.name + (p.role === 'host' ? ' 👑' : '') + '</span>';
-      list.appendChild(chip);
-    }
-    var cnt = pkeys.length;
-    document.getElementById('wmsg').textContent = cnt < 2 ? 'Waiting for more players…' : cnt + ' players ready!';
-    if (room.status === 'playing') loadOnlineGame(room);
-    if (room.status === 'ended')   showResults(room.scores, room.winner);
-  });
-}
-
-// ── START GAME (host) ────────────────────────────
+/* ── START ── */
 function startGame() {
-  if (!db) return;
-  db.ref('rooms/' + roomCode).once('value').then(function(snap) {
-    var room = snap.val();
-    var players = room.players || {};
-    var pkeys = Object.keys(players);
-    if (pkeys.length < 2) { toast('Need at least 2 players!', 'err'); return; }
+  myName = document.getElementById('host-name').value.trim();
+  if (!myName) { toast('Enter your name first', 'err'); return; }
+  pairCount = parseInt(document.getElementById('pair-count').value) || 8;
+  pairCount = Math.max(4, Math.min(30, pairCount));
 
-    var cats = room.categories || ['nouns','adjectives','verbs'];
-    var deck = buildDeck(cats, room.pairCount || 8);
-    shuffle(pkeys);
-
-    var sc = {};
-    for (var i=0; i<pkeys.length; i++) sc[pkeys[i]] = 0;
-
-    db.ref('rooms/' + roomCode).update({
-      status: 'playing',
-      deck: deck,
-      turnOrder: pkeys,
-      turnIdx: 0,
-      flipped: [],
-      matched: {},
-      scores: sc
-    });
-  });
-}
-
-// ── LOCAL GAME ───────────────────────────────────
-function startLocalGame() {
-  var cats = Object.keys(selectedCats).filter(function(k){ return selectedCats[k]; });
-  cards = buildDeck(cats, pairCount);
-  scores = {}; scores[sanitize(myName)] = 0;
-  turnOrder = [sanitize(myName)];
-  turnIdx = 0;
-  matched = {};
+  cards   = buildDeck();
   flipped = [];
+  matched = {};
+  score   = 0;
   canFlip = true;
-  localMode = true;
-  gameLoaded = true;
-  show('game');
-  renderBoard();
-  renderScores();
-  renderTurn();
-  renderSkip();
-}
-
-// ── ONLINE GAME ──────────────────────────────────
-function loadOnlineGame(room) {
-  if (gameLoaded) return;
-  gameLoaded = true;
-  cards     = room.deck || [];
-  scores    = room.scores || {};
-  turnOrder = room.turnOrder || [];
-  turnIdx   = room.turnIdx || 0;
-  matched   = room.matched || {};
-  flipped   = room.flipped || [];
-  pairCount = room.pairCount || 8;
 
   show('game');
   renderBoard();
-  renderScores();
-  renderTurn();
-  renderSkip();
-  canFlip = isMyTurn() && flipped.length < 2;
-
-  db.ref('rooms/' + roomCode).on('value', function(snap) {
-    if (!snap.exists()) return;
-    var r = snap.val();
-    if (r.status === 'ended')   { showResults(r.scores, r.winner); return; }
-    if (r.status !== 'playing') return;
-    scores    = r.scores    || {};
-    turnOrder = r.turnOrder || [];
-    turnIdx   = r.turnIdx   || 0;
-    matched   = r.matched   || {};
-    flipped   = r.flipped   || [];
-    updateCards();
-    renderScores();
-    renderTurn();
-    renderSkip();
-    canFlip = isMyTurn() && flipped.length < 2;
-  });
+  renderScore();
+  document.getElementById('btn-skip').disabled = false;
 }
 
-function isMyTurn() {
-  return turnOrder[turnIdx] === sanitize(myName);
-}
-
-// ── RENDER BOARD ─────────────────────────────────
+/* ── RENDER ── */
 function renderBoard() {
+  var catLabels = {nouns:'Noun', adjectives:'Adj', verbs:'Verb'};
   var grid = document.getElementById('grid');
   grid.innerHTML = '';
 
+  /* legend */
   var leg = document.getElementById('legend');
   var activeCats = {};
-  for (var x=0; x<cards.length; x++) activeCats[cards[x].category] = true;
-  var catLabels = {nouns:'Noun', adjectives:'Adj', verbs:'Verb'};
+  for (var x = 0; x < cards.length; x++) activeCats[cards[x].cat] = true;
   leg.innerHTML = '';
   var cnames = Object.keys(activeCats);
-  for (var ci=0; ci<cnames.length; ci++) {
+  for (var ci = 0; ci < cnames.length; ci++) {
     var cls = catCls(cnames[ci]);
     leg.innerHTML += '<span><span class="dot ' + cls + '"></span>' + catLabels[cnames[ci]] + '</span>';
   }
   leg.innerHTML += '<span><span class="dot reg"></span>Regular</span>';
   leg.innerHTML += '<span><span class="dot irr"></span>Irregular</span>';
 
-  for (var i=0; i<cards.length; i++) {
+  /* cards */
+  for (var i = 0; i < cards.length; i++) {
     (function(idx) {
       var card = cards[idx];
-      var cls  = catCls(card.category);
+      var cls  = catCls(card.cat);
       var wrap = document.createElement('div');
       wrap.className = 'cw';
-      wrap.setAttribute('data-idx', idx);
-      if (matched[String(card.pairId)])  wrap.classList.add('matched', 'flipped');
+      if (matched[card.pid])          wrap.classList.add('matched','flipped');
       else if (flipped.indexOf(idx) >= 0) wrap.classList.add('flipped');
       wrap.innerHTML =
         '<div class="ci">' +
           '<div class="cf cb"><div class="cb-ico">🃏</div></div>' +
           '<div class="cf ' + cls + '">' +
-            '<span class="cbadge ' + cls + '">' + (catLabels[card.category]||cls) + '</span>' +
-            '<span class="tbadge ' + card.wtype + '">' + card.wtype + '</span>' +
+            '<span class="cbadge ' + cls + '">' + catLabels[card.cat] + '</span>' +
+            '<span class="tbadge ' + card.wt + '">' + card.wt + '</span>' +
             '<span class="cword">' + card.word + '</span>' +
             '<span class="chint">' + card.hint + '</span>' +
           '</div>' +
@@ -744,255 +424,95 @@ function renderBoard() {
   }
 }
 
-function updateCards() {
-  var wraps = document.querySelectorAll('.cw');
-  for (var i=0; i<wraps.length; i++) {
-    var card = cards[i];
-    wraps[i].classList.remove('flipped','matched','wrong');
-    if (matched[String(card.pairId)])       wraps[i].classList.add('matched','flipped');
-    else if (flipped.indexOf(i) >= 0)       wraps[i].classList.add('flipped');
-  }
+function renderScore() {
+  document.getElementById('sbar').innerHTML =
+    '<div class="spill turn">👤 ' + myName + ' <span class="pts">' + score + '</span></div>';
 }
 
-function renderScores() {
-  var bar = document.getElementById('sbar');
-  bar.innerHTML = '';
-  var mySan = sanitize(myName);
-  var keys = Object.keys(scores).sort(function(a,b){ return scores[b]-scores[a]; });
-  for (var i=0; i<keys.length; i++) {
-    var k = keys[i];
-    var isTurn = turnOrder[turnIdx] === k;
-    var pill = document.createElement('div');
-    pill.className = 'spill' + (isTurn ? ' turn' : '');
-    pill.innerHTML = (k === mySan ? '👤 ' : '👥 ') + k + ' <span class="pts">' + scores[k] + '</span>';
-    bar.appendChild(pill);
-  }
-}
-
-function renderTurn() {
-  var banner = document.getElementById('tbanner');
-  var who = turnOrder[turnIdx];
-  if (who === sanitize(myName)) {
-    banner.textContent = '✨ Your turn! Flip two cards.';
-    banner.className = 'tbanner mine';
-  } else {
-    banner.textContent = '⏳ ' + who + "'s turn…";
-    banner.className = 'tbanner theirs';
-  }
-}
-
-function renderSkip() {
-  var btn = document.getElementById('btn-skip');
-  btn.disabled = !(isMyTurn() && flipped.length === 0);
-}
-
-// ── FLIP CARD ────────────────────────────────────
+/* ── FLIP ── */
 function flipCard(idx) {
   if (!canFlip) return;
-  if (matched[String(cards[idx].pairId)]) return;
+  if (matched[cards[idx].pid]) return;
   if (flipped.indexOf(idx) >= 0) return;
-  if (!isMyTurn()) { toast("Not your turn!", 'err'); return; }
 
-  flipped = flipped.concat([idx]);
-  canFlip = flipped.length < 2;
+  flipped.push(idx);
+  var wraps = document.querySelectorAll('.cw');
+  wraps[idx].classList.add('flipped');
 
-  if (localMode) {
-    updateCards();
-    renderSkip();
-    if (flipped.length < 2) return;
-    canFlip = false;
-    checkMatch();
-  } else {
-    db.ref('rooms/' + roomCode).update({flipped: flipped});
-    if (flipped.length < 2) return;
-    canFlip = false;
-    checkMatchOnline();
-  }
-}
+  if (flipped.length < 2) return;
 
-function checkMatch() {
+  canFlip = false;
+  document.getElementById('btn-skip').disabled = true;
+
   var i1 = flipped[0], i2 = flipped[1];
-  var c1 = cards[i1], c2 = cards[i2];
+  var c1 = cards[i1],  c2 = cards[i2];
+
   setTimeout(function() {
-    if (c1.pairId === c2.pairId && c1.side !== c2.side) {
-      matched[String(c1.pairId)] = true;
-      scores[sanitize(myName)] = (scores[sanitize(myName)] || 0) + 1;
+    if (c1.pid === c2.pid && c1.side !== c2.side) {
+      /* ✅ Match */
+      matched[c1.pid] = true;
+      score++;
+      var w1 = wraps[i1], w2 = wraps[i2];
+      if (w1) w1.classList.add('matched');
+      if (w2) w2.classList.add('matched');
       flipped = [];
-      updateCards(); renderScores(); renderSkip();
+      renderScore();
       canFlip = true;
-      if (Object.keys(matched).length >= pairCount) {
-        setTimeout(function() { showResults(scores, sanitize(myName)); }, 400);
+      document.getElementById('btn-skip').disabled = false;
+      var total = Object.keys(matched).length;
+      if (total >= pairCount) {
+        setTimeout(function() { showResults(); }, 400);
       } else {
-        toast('Match! Go again!', 'ok');
+        toast('Match! Keep going!', 'ok');
       }
     } else {
-      var w1 = document.querySelectorAll('.cw')[i1];
-      var w2 = document.querySelectorAll('.cw')[i2];
+      /* ❌ No match */
+      var w1 = wraps[i1], w2 = wraps[i2];
       if (w1) w1.classList.add('wrong');
       if (w2) w2.classList.add('wrong');
       setTimeout(function() {
+        if (w1) { w1.classList.remove('flipped','wrong'); }
+        if (w2) { w2.classList.remove('flipped','wrong'); }
         flipped = [];
-        updateCards(); renderSkip();
         canFlip = true;
-      }, 700);
+        document.getElementById('btn-skip').disabled = false;
+      }, 800);
     }
   }, 900);
 }
 
-function checkMatchOnline() {
-  var i1 = flipped[0], i2 = flipped[1];
-  var c1 = cards[i1], c2 = cards[i2];
-  setTimeout(function() {
-    if (c1.pairId === c2.pairId && c1.side !== c2.side) {
-      var nm = {}; for (var k in matched) nm[k] = matched[k];
-      nm[String(c1.pairId)] = true;
-      var mySan = sanitize(myName);
-      var ns = {}; for (var sk in scores) ns[sk] = scores[sk];
-      ns[mySan] = (ns[mySan]||0) + 1;
-      if (Object.keys(nm).length >= pairCount) {
-        var winner = Object.keys(ns).sort(function(a,b){return ns[b]-ns[a];})[0];
-        db.ref('rooms/'+roomCode).update({matched:nm,flipped:[],scores:ns,status:'ended',winner:winner});
-      } else {
-        db.ref('rooms/'+roomCode).update({matched:nm,flipped:[],scores:ns});
-        toast('Match! Go again!', 'ok');
-        canFlip = true;
-      }
-    } else {
-      var w1 = document.querySelectorAll('.cw')[i1];
-      var w2 = document.querySelectorAll('.cw')[i2];
-      if (w1) w1.classList.add('wrong');
-      if (w2) w2.classList.add('wrong');
-      setTimeout(function() {
-        var next = (turnIdx + 1) % turnOrder.length;
-        db.ref('rooms/'+roomCode).update({flipped:[], turnIdx:next});
-      }, 400);
-    }
-  }, 900);
-}
-
-// ── SKIP TURN ────────────────────────────────────
+/* ── SKIP ── */
 function skipTurn() {
-  if (!isMyTurn() || flipped.length > 0) return;
-  if (localMode) {
-    toast('Skipped!', 'inf');
-    return;
+  if (!canFlip) return;
+  flipped = [];
+  var wraps = document.querySelectorAll('.cw');
+  for (var i = 0; i < wraps.length; i++) {
+    if (!wraps[i].classList.contains('matched')) wraps[i].classList.remove('flipped');
   }
-  var next = (turnIdx + 1) % turnOrder.length;
-  db.ref('rooms/'+roomCode).update({flipped:[], turnIdx:next});
   toast('Turn skipped', 'inf');
 }
 
-// ── COPY CODE ────────────────────────────────────
-function copyCode() {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(roomCode).then(function() { toast('Copied: ' + roomCode, 'ok'); });
-  } else {
-    toast('Code: ' + roomCode, 'inf');
-  }
-}
-
-// ── RESULTS ──────────────────────────────────────
-function showResults(sc, winner) {
-  if (document.getElementById('results').classList.contains('on')) return;
-  if (db) db.ref('rooms/'+roomCode).off();
+/* ── RESULTS ── */
+function showResults() {
   show('results');
-  gameLoaded = false; localMode = false;
-
-  var mySan = sanitize(myName);
-  document.getElementById('rtrophy').textContent = winner === mySan ? '🏆' : '🎮';
-  document.getElementById('rtitle').textContent  = winner === mySan ? 'You Win! 🎉' : winner + ' Wins!';
-
-  var keys = Object.keys(sc || {}).sort(function(a,b){ return (sc[b]||0)-(sc[a]||0); });
-  var medals = ['🥇','🥈','🥉'];
   var pod = document.getElementById('podium');
-  pod.innerHTML = '';
-  for (var i=0; i<keys.length; i++) {
-    var row = document.createElement('div');
-    row.className = 'prow' + (i===0?' win':'');
-    row.innerHTML = '<span class="medal">'+(medals[i]||'')+'</span><span class="pname">'+keys[i]+'</span><span class="pscore">'+sc[keys[i]]+' pts</span>';
-    pod.appendChild(row);
-  }
+  pod.innerHTML = '<div class="prow win"><span class="medal">🥇</span><span class="pname">' + myName + '</span><span class="pscore">' + score + ' pts</span></div>';
 }
 
-function playAgain() {
-  gameLoaded = false;
-  if (localMode || !db) {
-    localMode = false;
-    cards=[]; flipped=[]; matched={}; scores={}; turnOrder=[];
-    startLocalGame();
-    return;
-  }
-  if (myRole === 'host') {
-    db.ref('rooms/'+roomCode).update({status:'waiting',deck:null,scores:null,matched:null,flipped:null,winner:null});
-    show('waiting');
-  } else {
-    show('waiting');
-  }
+/* ── WIRE BUTTONS ── */
+document.getElementById('btn-create').addEventListener('click', startGame);
+document.getElementById('btn-skip').addEventListener('click',   skipTurn);
+document.getElementById('btn-quit').addEventListener('click',   function() { show('lobby'); });
+document.getElementById('btn-again').addEventListener('click',  startGame);
+document.getElementById('btn-lobby').addEventListener('click',  function() { show('lobby'); });
+
+var cats = document.querySelectorAll('.cat');
+for (var i = 0; i < cats.length; i++) {
+  (function(btn) { btn.addEventListener('click', function() { toggleCat(btn); }); })(cats[i]);
 }
 
-function leaveRoom() {
-  if (db && inRoom && roomCode) {
-    db.ref('rooms/'+roomCode).off();
-    if (myRole==='host') db.ref('rooms/'+roomCode+'/status').set('ended');
-    else db.ref('rooms/'+roomCode+'/players/'+sanitize(myName)).remove();
-  }
-  inRoom=false; roomCode=''; myName=''; myRole='';
-  cards=[]; flipped=[]; matched={}; scores={}; turnOrder=[];
-  gameLoaded=false; localMode=false;
-  show('lobby');
-}
-
-// ── INIT ─────────────────────────────────────────
-// Wire buttons IMMEDIATELY — no waiting, no dependencies
-(function() {
-  function ready(fn) {
-    if (document.readyState !== 'loading') { fn(); }
-    else { document.addEventListener('DOMContentLoaded', fn); }
-  }
-
-  ready(function() {
-    // Category buttons
-    var catBtns = document.querySelectorAll('.cat');
-    for (var i=0; i<catBtns.length; i++) {
-      (function(btn){ btn.addEventListener('click', function(){ toggleCat(btn); }); })(catBtns[i]);
-    }
-
-    // Action buttons
-    document.getElementById('btn-create').addEventListener('click',   createRoom);
-    document.getElementById('btn-join').addEventListener('click',     joinRoom);
-    document.getElementById('code-display').addEventListener('click', copyCode);
-    document.getElementById('btn-start').addEventListener('click',    startGame);
-    document.getElementById('btn-leave-h').addEventListener('click',  leaveRoom);
-    document.getElementById('btn-leave-g').addEventListener('click',  leaveRoom);
-    document.getElementById('btn-skip').addEventListener('click',     skipTurn);
-    document.getElementById('btn-again').addEventListener('click',    playAgain);
-    document.getElementById('btn-lobby').addEventListener('click',    leaveRoom);
-
-    // Enter key shortcuts
-    document.getElementById('host-name').addEventListener('keydown', function(e){ if(e.key==='Enter') createRoom(); });
-    document.getElementById('join-name').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
-    document.getElementById('room-code').addEventListener('keydown', function(e){ if(e.key==='Enter') joinRoom(); });
-
-    console.log('Buttons wired OK');
-  });
-})();
-
-// Firebase init runs separately — a failure here CANNOT affect buttons
-window.addEventListener('load', function() {
-  try {
-    if (typeof firebase !== 'undefined' && firebase.database) {
-      if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
-      console.log('Firebase OK');
-    } else {
-      throw new Error('Firebase not available');
-    }
-  } catch(e) {
-    db = null;
-    console.warn('Firebase unavailable — solo mode:', e.message);
-    var banner = document.getElementById('status-banner');
-    if (banner) banner.style.display = 'block';
-  }
+document.getElementById('host-name').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') startGame();
 });
 </script>
 </body>
