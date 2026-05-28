@@ -610,7 +610,7 @@
       <label>Number of Pairs</label>
       <input type="number" id="pair-count" value="8" min="4" max="30">
     </div>
-    <button type="button" class="btn btn-primary" onclick="createRoom()">✨ Create Room</button>
+    <button type="button" id="btn-create" class="btn btn-primary">✨ Create Room</button>
     <div id="firebase-status" style="text-align:center;font-size:0.8rem;font-family:'Space Mono',monospace;padding:0.5rem 1rem;border-radius:10px;background:#fff8e1;color:#f57c00;border:1.5px solid #ffe082;display:none">
       ⚡ No Firebase config — will play in <strong>Solo Mode</strong>
     </div>
@@ -622,7 +622,7 @@
     </div>
     <div class="join-row">
       <input type="text" id="room-code-input" placeholder="ROOM CODE" maxlength="6">
-      <button type="button" class="btn btn-secondary" onclick="joinRoom()">Join →</button>
+      <button type="button" id="btn-join" class="btn btn-secondary">Join →</button>
     </div>
   </div>
 </div>
@@ -631,18 +631,18 @@
 <div id="waiting" class="screen">
   <div style="text-align:center">
     <p style="font-size:0.72rem;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:3px;text-transform:uppercase;margin-bottom:0.5rem">Room Code</p>
-    <div class="room-code-display" id="display-code" onclick="copyCode()" title="Click to copy">----</div>
+    <div class="room-code-display" id="display-code" title="Click to copy">----</div>
     <div class="room-code-label">Share this code · tap to copy</div>
   </div>
   <p style="font-size:0.85rem;color:var(--muted);font-weight:700">Players in Room</p>
   <div class="players-grid" id="players-list"></div>
   <p class="waiting-msg" id="wait-msg">Waiting for players…</p>
   <div id="host-controls" style="display:none;flex-direction:column;gap:0.6rem;width:100%;max-width:300px">
-    <button type="button" class="btn btn-success" onclick="startGame()">▶ Start Game</button>
-    <button type="button" class="btn btn-danger"  onclick="leaveRoom()">Leave Room</button>
+    <button type="button" id="btn-start" class="btn btn-success">▶ Start Game</button>
+    <button type="button" id="btn-leave-guest" class="btn btn-danger">Leave Room</button>
   </div>
   <div id="guest-controls" style="display:none">
-    <button type="button" class="btn btn-danger" onclick="leaveRoom()">Leave Room</button>
+    <button type="button" id="btn-leave-host" class="btn btn-danger">Leave Room</button>
   </div>
 </div>
 
@@ -652,7 +652,7 @@
     <span class="game-title">⚡ WordMatch</span>
     <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
       <div class="scores-bar" id="scores-bar"></div>
-      <button type="button" id="skip-btn" class="btn btn-skip" onclick="skipTurn()" disabled title="Skip your turn">⏭ Skip</button>
+      <button type="button" id="skip-btn" class="btn btn-skip" disabled title="Skip your turn">⏭ Skip</button>
     </div>
   </div>
   <div class="cat-legend" id="cat-legend"></div>
@@ -667,8 +667,8 @@
     <div class="results-title" id="result-title">Game Over!</div>
     <div class="podium" id="podium"></div>
     <div style="display:flex;flex-direction:column;gap:0.6rem">
-      <button type="button" class="btn btn-primary" onclick="playAgain()">🔄 Play Again</button>
-      <button type="button" class="btn btn-secondary" onclick="backToLobby()">🏠 Back to Lobby</button>
+      <button type="button" id="btn-again" class="btn btn-primary">🔄 Play Again</button>
+      <button type="button" id="btn-lobby" class="btn btn-secondary">🏠 Back to Lobby</button>
     </div>
   </div>
 </div>
@@ -1374,30 +1374,51 @@ function shuffle(arr) {
 // ════════════════════════════════════
 //  INIT
 // ════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  // Wire category buttons — safe for all OS/browsers (no inline onclick)
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => toggleCat(btn));
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ── Category buttons ──
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { toggleCat(btn); });
   });
 
-  // Enter key on inputs
-  document.getElementById('host-name').addEventListener('keydown', e => { if(e.key==='Enter') createRoom(); });
-  document.getElementById('join-name').addEventListener('keydown', e => { if(e.key==='Enter') joinRoom(); });
-  document.getElementById('room-code-input').addEventListener('keydown', e => { if(e.key==='Enter') joinRoom(); });
+  // ── Lobby ──
+  document.getElementById('btn-create').addEventListener('click', function() { createRoom(); });
+  document.getElementById('btn-join').addEventListener('click',   function() { joinRoom(); });
 
-  // Try Firebase — gracefully fall back to solo mode
+  // ── Waiting room ──
+  document.getElementById('display-code').addEventListener('click',  function() { copyCode(); });
+  document.getElementById('btn-start').addEventListener('click',      function() { startGame(); });
+  document.getElementById('btn-leave-host').addEventListener('click', function() { leaveRoom(); });
+  document.getElementById('btn-leave-guest').addEventListener('click',function() { leaveRoom(); });
+
+  // ── Game ──
+  document.getElementById('skip-btn').addEventListener('click', function() { skipTurn(); });
+
+  // ── Results ──
+  document.getElementById('btn-again').addEventListener('click', function() { playAgain(); });
+  document.getElementById('btn-lobby').addEventListener('click', function() { backToLobby(); });
+
+  // ── Enter key shortcuts ──
+  document.getElementById('host-name').addEventListener('keydown', function(e) { if (e.key === 'Enter') createRoom(); });
+  document.getElementById('join-name').addEventListener('keydown', function(e) { if (e.key === 'Enter') joinRoom(); });
+  document.getElementById('room-code-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') joinRoom(); });
+
+  // ── Firebase init ──
   try {
     if (typeof firebase !== 'undefined') {
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
       db = firebase.database();
-      console.log('✅ Firebase connected');
+      console.log('Firebase connected');
     } else {
-      throw new Error('Firebase SDK not loaded');
+      db = null;
+      console.warn('Firebase SDK not loaded — solo mode');
+      var banner = document.getElementById('firebase-status');
+      if (banner) banner.style.display = 'block';
     }
   } catch(e) {
     db = null;
-    console.warn('Firebase not available:', e.message);
-    const banner = document.getElementById('firebase-status');
+    console.warn('Firebase error:', e.message);
+    var banner = document.getElementById('firebase-status');
     if (banner) banner.style.display = 'block';
   }
 });
