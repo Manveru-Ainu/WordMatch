@@ -168,8 +168,9 @@ hr{border:none;border-top:2px solid var(--border);}
       <input type="text" id="room-code-input" placeholder="ROOM CODE" maxlength="6">
       <button type="button" class="btn btn-gray" id="btn-join" style="width:auto;padding:.8rem 1.2rem;">Join →</button>
     </div>
-    <div id="fb-banner" style="display:none;background:var(--orange-bg);color:var(--orange);border:2px solid #ffe082;border-radius:10px;padding:.5rem 1rem;font-size:.8rem;font-weight:700;text-align:center;">
-      ⚠️ Firebase not configured — online mode unavailable
+    <div id="fb-banner" style="display:none;background:#fff3e0;color:#e65100;border:2px solid #ffb74d;border-radius:10px;padding:.8rem 1rem;font-size:.82rem;font-weight:700;text-align:center;line-height:1.5;">
+      🔧 <strong>Online mode needs Firebase.</strong><br>
+      Open this file, find <code style="background:#ffe0b2;padding:.1rem .3rem;border-radius:4px;">FB_CONFIG_READY</code> and set it to <code style="background:#ffe0b2;padding:.1rem .3rem;border-radius:4px;">true</code> after adding your credentials.
     </div>
   </div>
 </div>
@@ -233,14 +234,16 @@ hr{border:none;border-top:2px solid var(--border);}
 /* ════════════════════════════════════════════════
    FIREBASE CONFIG  —  replace with your own
    ════════════════════════════════════════════════ */
+var FB_CONFIG_READY = true; /* set to true after adding real credentials */
 var FB_CONFIG = {
-  apiKey:            "AIzaSyDEMO_REPLACE",
-  authDomain:        "wordmatch-demo.firebaseapp.com",
-  databaseURL:       "https://wordmatch-demo-default-rtdb.firebaseio.com",
-  projectId:         "wordmatch-demo",
-  storageBucket:     "wordmatch-demo.appspot.com",
-  messagingSenderId: "000000000000",
-  appId:             "1:000000000000:web:000000"
+  apiKey:            "AIzaSyBehA3C7DtV-tURS49QDFirk0XTWOvmOzE",
+  authDomain:        "memorygame-c4b7b.firebaseapp.com",
+  databaseURL:       "https://memorygame-c4b7b-default-rtdb.firebaseio.com",
+  projectId:         "memorygame-c4b7b",
+  storageBucket:     "memorygame-c4b7b.firebasestorage.app",
+  messagingSenderId: "650580592682",
+  appId:             "1:650580592682:web:48a7ff98ba3ff6bf6f9b53",
+  measurementId:     "G-1J4061CSRH"
 };
 
 /* ════════════════════════════════════════════════
@@ -398,13 +401,16 @@ var WORDS = {
    ════════════════════════════════════════════════ */
 var db = null;
 (function() {
+  if (!FB_CONFIG_READY) {
+    db = null;
+    return;
+  }
   try {
     if (!window._fbErr && typeof firebase !== 'undefined') {
       if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
       db = firebase.database();
     }
   } catch(e) { db = null; }
-  if (!db) document.getElementById('fb-banner').style.display = 'block';
 })();
 
 /* ════════════════════════════════════════════════
@@ -525,7 +531,13 @@ function startSolo() {
    ONLINE — CREATE ROOM
    ════════════════════════════════════════════════ */
 function createRoom() {
-  if(!db){toast('Firebase not configured','err');return;}
+  if(!db){
+    var banner = document.getElementById('fb-banner');
+    banner.style.display = 'block';
+    banner.style.outline = '3px solid var(--red)';
+    setTimeout(function(){ banner.style.outline = ''; }, 1500);
+    return;
+  }
   myName = document.getElementById('mp-name').value.trim();
   if(!myName){toast('Enter your name','err');return;}
   pairCount = Math.max(4,Math.min(30,parseInt(document.getElementById('pair-count').value)||8));
