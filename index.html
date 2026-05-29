@@ -71,14 +71,7 @@ hr{border:none;border-top:2px solid var(--border);}
 .spill.turn{border-color:var(--blue);background:var(--blue-bg);}
 .spill .pts{font-family:monospace;color:var(--blue);}
 
-/* Timer bar */
-.timer-wrap{background:var(--surface);border-radius:10px;border:2px solid var(--border);padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;}
-.timer-label{font-size:.72rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-weight:700;font-family:monospace;white-space:nowrap;}
-.timer-val{font-family:monospace;font-size:1.1rem;font-weight:900;color:var(--blue);min-width:42px;}
-.timer-val.warn{color:var(--red);}
-.timer-bar-bg{flex:1;height:8px;background:var(--border);border-radius:100px;overflow:hidden;}
-.timer-bar{height:100%;background:var(--blue);border-radius:100px;transition:width .5s linear,background .5s;}
-.timer-bar.warn{background:var(--red);}
+
 
 .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.73rem;color:var(--muted);font-weight:700;}
 .legend span{display:flex;align-items:center;gap:.3rem;}
@@ -163,10 +156,6 @@ hr{border:none;border-top:2px solid var(--border);}
       <label>Number of Pairs</label>
       <input type="number" id="pair-count" value="8" min="4" max="30">
     </div>
-    <div>
-      <label>Timer per turn (seconds, 0 = off)</label>
-      <input type="number" id="turn-timer" value="30" min="0" max="120">
-    </div>
     <button type="button" class="btn btn-blue" id="btn-solo">✨ Play Solo</button>
     <hr>
     <h2>🌐 Online Multiplayer</h2>
@@ -214,10 +203,6 @@ hr{border:none;border-top:2px solid var(--border);}
       <button type="button" class="btn btn-gray" id="btn-quit" style="width:auto;padding:.55rem 1rem;font-size:.88rem;">🏠 Quit</button>
     </div>
   </div>
-  <div class="timer-wrap" id="timer-wrap" style="display:none">
-    <span class="timer-label">Time</span>
-    <span class="timer-val" id="timer-val">30</span>
-    <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
   </div>
   <div class="legend" id="legend"></div>
   <div class="tbanner mine" id="tbanner">✨ Your turn! Flip two cards.</div>
@@ -431,7 +416,6 @@ var roomCode  = '';
 var inRoom    = false;
 var onlineMode= false;
 var pairCount = 8;
-var turnSecs  = 30;
 var selCats   = {nouns:true,adjectives:true,verbs:true};
 
 var cards     = [];
@@ -445,8 +429,6 @@ var canFlip   = false;
 /* scoring */
 var gameStartTime = 0;
 var moveCount     = 0;
-var timerInt      = null;
-var turnTimeLeft  = 0;
 
 /* ════════════════════════════════════════════════
    HELPERS
@@ -523,7 +505,6 @@ function startSolo() {
   myName = document.getElementById('solo-name').value.trim();
   if(!myName){toast('Enter your name first','err');return;}
   pairCount = Math.max(4,Math.min(30,parseInt(document.getElementById('pair-count').value)||8));
-  turnSecs  = Math.max(0,Math.min(120,parseInt(document.getElementById('turn-timer').value)||0));
 
   var cats = Object.keys(selCats).filter(function(k){return selCats[k];});
   cards   = buildDeck(cats, pairCount);
@@ -538,7 +519,6 @@ function startSolo() {
   renderScores();
   renderTurn();
   document.getElementById('btn-skip').disabled = false;
-  startTurnTimer();
 }
 
 /* ════════════════════════════════════════════════
@@ -549,10 +529,9 @@ function createRoom() {
   myName = document.getElementById('mp-name').value.trim();
   if(!myName){toast('Enter your name','err');return;}
   pairCount = Math.max(4,Math.min(30,parseInt(document.getElementById('pair-count').value)||8));
-  turnSecs  = Math.max(0,Math.min(120,parseInt(document.getElementById('turn-timer').value)||0));
   myRole='host'; roomCode=randCode();
   var cats = Object.keys(selCats).filter(function(k){return selCats[k];});
-  var data = {host:sanitize(myName),status:'waiting',categories:cats,pairCount:pairCount,turnSecs:turnSecs,players:{}};
+  var data = {host:sanitize(myName),status:'waiting',categories:cats,pairCount:pairCount,players:{}};
   data.players[sanitize(myName)] = {name:myName,score:0,role:'host'};
   db.ref('rooms/'+roomCode).set(data).then(function(){
     enterWaiting();
@@ -643,12 +622,11 @@ function launchOnlineGame(r) {
   cards=r.deck||[]; scores=r.scores||{};
   turnOrder=r.turnOrder||[]; turnIdx=r.turnIdx||0;
   matched=r.matched||{}; flipped=r.flipped||[];
-  pairCount=r.pairCount||8; turnSecs=r.turnSecs||0;
+  pairCount=r.pairCount||8;
   onlineMode=true; gameStartTime=r.startTime||Date.now();
   show('game'); renderBoard(); renderScores(); renderTurn();
   canFlip=isMyTurn()&&flipped.length<2;
   document.getElementById('btn-skip').disabled=!isMyTurn();
-  startTurnTimer();
   db.ref('rooms/'+roomCode).on('value',function(snap){
     if(!snap.exists())return;
     var rv=snap.val();
@@ -659,63 +637,11 @@ function launchOnlineGame(r) {
     updateCards(); renderScores(); renderTurn();
     canFlip=isMyTurn()&&flipped.length<2;
     document.getElementById('btn-skip').disabled=!isMyTurn();
-    if(isMyTurn()) startTurnTimer(); else stopTurnTimer();
   });
 }
 
 function isMyTurn() {
   return turnOrder.length>0 && turnOrder[turnIdx]===sanitize(myName);
-}
-
-/* ════════════════════════════════════════════════
-   TIMER
-   ════════════════════════════════════════════════ */
-function startTurnTimer() {
-  stopTurnTimer();
-  if(!turnSecs) return;
-  var wrap=document.getElementById('timer-wrap');
-  wrap.style.display='flex';
-  turnTimeLeft=turnSecs;
-  renderTimerUI();
-  timerInt=setInterval(function(){
-    turnTimeLeft--;
-    renderTimerUI();
-    if(turnTimeLeft<=0){
-      stopTurnTimer();
-      toast("Time's up! Skipping turn…",'err');
-      autoSkip();
-    }
-  },1000);
-}
-
-function stopTurnTimer() {
-  clearInterval(timerInt); timerInt=null;
-  var wrap=document.getElementById('timer-wrap');
-  if(wrap) wrap.style.display='none';
-}
-
-function renderTimerUI() {
-  var val=document.getElementById('timer-val');
-  var bar=document.getElementById('timer-bar');
-  if(!val||!bar)return;
-  var pct=Math.max(0,(turnTimeLeft/turnSecs)*100);
-  val.textContent=pad(turnTimeLeft);
-  bar.style.width=pct+'%';
-  var warn=turnTimeLeft<=10;
-  val.className='timer-val'+(warn?' warn':'');
-  bar.className='timer-bar'+(warn?' warn':'');
-}
-
-function autoSkip() {
-  if(onlineMode){
-    var next=(turnIdx+1)%turnOrder.length;
-    db.ref('rooms/'+roomCode).update({flipped:[],turnIdx:next});
-  } else {
-    flipped=[]; updateCards();
-    canFlip=true;
-    document.getElementById('btn-skip').disabled=false;
-    startTurnTimer();
-  }
 }
 
 /* ════════════════════════════════════════════════
@@ -821,7 +747,6 @@ function flipCard(idx) {
 
   if(flipped.length<2)return;
   canFlip=false;
-  stopTurnTimer();
 
   var i1=flipped[0],i2=flipped[1];
   var c1=cards[i1],c2=cards[i2];
@@ -850,8 +775,7 @@ function flipCard(idx) {
         toast('Match! Keep going! 🎉','ok');
         if(onlineMode){
           db.ref('rooms/'+roomCode).update({flipped:[],scores:scores});
-          startTurnTimer();
-        } else { startTurnTimer(); }
+        }
       }
     } else {
       /* ❌ NO MATCH */
@@ -868,8 +792,7 @@ function flipCard(idx) {
         } else {
           canFlip=true;
           document.getElementById('btn-skip').disabled=false;
-          startTurnTimer();
-        }
+                }
       },800);
     }
   },900);
@@ -880,7 +803,6 @@ function flipCard(idx) {
    ════════════════════════════════════════════════ */
 function skipTurn() {
   if(!canFlip)return;
-  stopTurnTimer();
   flipped=[];
   if(onlineMode){
     var next=(turnIdx+1)%turnOrder.length;
@@ -889,8 +811,7 @@ function skipTurn() {
     updateCards();
     canFlip=true;
     document.getElementById('btn-skip').disabled=false;
-    startTurnTimer();
-  }
+    }
   toast('Turn skipped','inf');
 }
 
@@ -899,7 +820,6 @@ function skipTurn() {
    ════════════════════════════════════════════════ */
 function showResults(sc, winner, moves, dur) {
   if(document.getElementById('results').classList.contains('on'))return;
-  stopTurnTimer();
   if(db&&inRoom) db.ref('rooms/'+roomCode).off();
   show('results'); _gameLoaded=false;
 
@@ -936,8 +856,7 @@ function showResults(sc, winner, moves, dur) {
 }
 
 function playAgain() {
-  _gameLoaded=false; stopTurnTimer();
-  if(onlineMode&&myRole==='host'){
+  _gameLoaded=false;   if(onlineMode&&myRole==='host'){
     db.ref('rooms/'+roomCode).update({status:'waiting',deck:null,scores:null,matched:null,flipped:null,winner:null,moveCount:null,duration:null});
     show('waiting');
   } else if(onlineMode){
@@ -948,7 +867,7 @@ function playAgain() {
 }
 
 function leaveRoom() {
-  stopTurnTimer(); _gameLoaded=false; onlineMode=false;
+  _gameLoaded=false; onlineMode=false;
   if(db&&inRoom&&roomCode){
     db.ref('rooms/'+roomCode).off();
     if(myRole==='host') db.ref('rooms/'+roomCode+'/status').set('ended');
