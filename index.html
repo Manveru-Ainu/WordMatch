@@ -146,6 +146,17 @@
   .speak{background:#EF9F27; color:#fff; box-shadow:0 4px 0 #854F0B; font-size:16px;}
   .speak:active{box-shadow:0 1px 0 #854F0B;}
   .qfoot{margin-top:16px; text-align:center; font-weight:800; min-height:22px;}
+  .answer-reveal{margin-top:14px; background:var(--adj-bg); border:2px solid var(--adj); color:var(--adj-dark);
+    border-radius:14px; padding:14px 16px; font-weight:800; font-size:19px; line-height:1.3; animation:pop .25s ease;}
+  .answer-reveal .lbl{display:block; font-family:var(--display); font-size:13px; text-transform:uppercase; letter-spacing:.5px; opacity:.7; margin-bottom:4px;}
+  .judge{margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .judge .note{grid-column:1 / -1; text-align:center; color:var(--muted); font-weight:700; font-size:13px;}
+  .btn.reveal{background:var(--noun); box-shadow:0 5px 0 var(--noun-dark); width:100%;}
+  .btn.reveal:active{box-shadow:0 1px 0 var(--noun-dark);}
+  .btn.judge-ok{background:var(--adj); box-shadow:0 5px 0 var(--adj-dark);}
+  .btn.judge-ok:active{box-shadow:0 1px 0 var(--adj-dark);}
+  .btn.judge-no{background:var(--noun); box-shadow:0 5px 0 var(--noun-dark);}
+  .btn.judge-no:active{box-shadow:0 1px 0 var(--noun-dark);}
 
   /* end */
   .winner{text-align:center;}
@@ -274,6 +285,8 @@
     <div class="qprompt" id="q-prompt"></div>
     <button id="q-speak" class="btn speak small" style="display:none;">🔊 Listen</button>
     <div class="opts" id="q-opts"></div>
+    <div class="answer-reveal" id="q-answer" style="display:none;"></div>
+    <div class="judge" id="q-judge" style="display:none;"></div>
     <div class="qfoot" id="q-foot"></div>
   </div>
 </div>
@@ -324,6 +337,76 @@ document.addEventListener("DOMContentLoaded", function(){
     ["set up","arrange / start"],["break down","stop working"],["check in","register somewhere"]
   ];
   var HABLA_WORDS = ["thought","through","enough","cough","laugh","weather","beach","bird","world","work","girl","early","heard","caught","brought"];
+
+  /* ===== Open-answer question bank (from teacher .docx) ===== */
+  var BANK_VERB = [
+    {sub:"Action Verbs", q:"In \"She ran to the store because she needed milk\", which of the two bolded verbs is a physical action verb?", a:"Ran."},
+    {sub:"Stative Verbs", q:"Identify the stative verb in this sentence: \"This soup tastes delicious, but I prefer the salad.\"", a:"Both \"tastes\" (state) and \"prefer\" (mental preference) are stative here."},
+    {sub:"Transitive Verbs", q:"What is the direct object of the transitive verb in: \"The mechanic repaired the broken car\"?", a:"The broken car."},
+    {sub:"Intransitive Verbs", q:"True or False: In the sentence \"The birds flew away\", the verb \"flew\" is intransitive.", a:"True (It does not have a direct object)."},
+    {sub:"Auxiliary Verbs", q:"What is the auxiliary verb in the question: \"Have you seen my keys?\"", a:"Have."},
+    {sub:"Modal Verbs", q:"Which modal verb is used to politely ask for permission: must, should, or may?", a:"May (e.g., May I come in?)."},
+    {sub:"Linking Verbs", q:"In \"The kids stayed quiet all night\", does \"stayed\" act as an action verb or a linking verb?", a:"Linking verb (it connects the subject with its state: quiet)."},
+    {sub:"Phrasal Verbs", q:"What does \"look for\" mean in: \"I need to look for my glasses\"?", a:"Buscar (Search / Find)."},
+    {sub:"Regular Verbs", q:"Spell the past tense of the regular verb \"stop\".", a:"Stopped (with double 'n')."},
+    {sub:"Irregular Verbs", q:"What is the past simple form of the irregular verb \"write\"?", a:"Wrote."},
+    {sub:"Action Verbs", q:"Find the mental action verb here: \"He jumped when he remembered the test.\"", a:"Remembered."},
+    {sub:"Stative Verbs", q:"Why is \"I am owning a house\" wrong? What is the correct form?", a:"\"Own\" is stative and doesn't use -ing. Correct: \"I own a house.\""},
+    {sub:"Transitive Verbs", q:"Does the verb in \"He reads books every night\" have a direct object? If yes, what is it?", a:"Yes, \"books\"."},
+    {sub:"Intransitive Verbs", q:"Is the verb in \"The sun shines brightly\" transitive or intransitive?", a:"Intransitive."},
+    {sub:"Auxiliary Verbs", q:"Name the auxiliary verb that helps form the continuous tense in: \"We are studying English.\"", a:"Are."},
+    {sub:"Modal Verbs", q:"Which modal verb expresses a 0% possibility or prohibition: cannot, might not, or should not?", a:"Cannot (or can't)."},
+    {sub:"Linking Verbs", q:"Change the verb to a linking verb: \"The milk (became / drank) sour.\"", a:"Became."},
+    {sub:"Phrasal Verbs", q:"If a plane leaves the ground and starts to fly, what phrasal verb did it just do?", a:"Take off (Despegar)."},
+    {sub:"Regular Verbs", q:"What is the past tense of the regular verb \"cry\"? (Watch the spelling!).", a:"Cried (the 'y' changes to 'i')."},
+    {sub:"Irregular Verbs", q:"What is the past participle form of the verb \"sing\"? (Sing -> Sang -> ______?)", a:"Sung."},
+    {sub:"Action Verbs", q:"Name three physical action verbs related to moving your body.", a:"Valid examples: Run, jump, walk, dance, swim, climb."},
+    {sub:"Stative Verbs", q:"Is the verb \"understand\" an action verb or a stative verb?", a:"Stative verb."},
+    {sub:"Transitive Verbs", q:"Turn this intransitive sentence into transitive by adding an object: \"She is singing.\"", a:"Valid examples: \"She is singing a song\" / \"She is singing an opera\"."},
+    {sub:"Auxiliary Verbs", q:"What auxiliary verb do you use to create a question in the future tense?", a:"Will (e.g., Will you help me?)."},
+    {sub:"Phrasal Verbs", q:"What does the phrasal verb \"wake up\" mean?", a:"Despertarse."}
+  ];
+  var BANK_NOUN = [
+    {sub:"Common Nouns", q:"Identify the two common nouns: \"London is a beautiful city with many parks.\"", a:"City and parks (\"London\" is proper)."},
+    {sub:"Proper Nouns", q:"Find the proper noun that needs a capital letter: \"We love eating pizza on fridays.\"", a:"Fridays (days of the week are always capitalized)."},
+    {sub:"Concrete Nouns", q:"Which of these cannot be touched and is NOT a concrete noun: Guitar, Music, or Musician?", a:"Music (sound waves are abstract/intangible compared to the others)."},
+    {sub:"Abstract Nouns", q:"What is the abstract noun hidden in this sentence: \"Her honesty is her best quality\"?", a:"Honesty."},
+    {sub:"Countable Nouns", q:"What is the plural form of the countable noun \"mouse\" (the animal)?", a:"Mice."},
+    {sub:"Uncountable Nouns", q:"Is the word \"bread\" countable or uncountable in English?", a:"Uncountable (counted in \"slices\", you don't say \"two breads\")."},
+    {sub:"Collective Nouns", q:"What collective noun is used for a group of wolves or dogs?", a:"A pack of wolves."},
+    {sub:"Compound Nouns", q:"Combine \"sun\" and \"flower\" to make a compound noun.", a:"Sunflower (Girasol)."},
+    {sub:"Possessive Nouns", q:"Fix the error: \"This is my friends car.\" (The car belongs to one friend).", a:"My friend's car."},
+    {sub:"Gerund Nouns", q:"In the sentence \"Swimming is my favorite hobby\", what is the gerund noun?", a:"Swimming."},
+    {sub:"Common Nouns", q:"Is \"teacher\" a common noun or a proper noun?", a:"Common noun."},
+    {sub:"Proper Nouns", q:"Correct the capitals: \"my doctor is named dr. smith.\"", a:"\"My doctor is named Dr. Smith.\""},
+    {sub:"Concrete Nouns", q:"Name three concrete nouns you can see in a kitchen.", a:"Valid examples: Knife, plate, refrigerator, spoon, table."},
+    {sub:"Abstract Nouns", q:"Turn the adjective \"sad\" into an abstract noun.", a:"Sadness."},
+    {sub:"Countable Nouns", q:"What is the plural of the countable noun \"knife\"?", a:"Knives (the 'f' changes to 'v')."},
+    {sub:"Uncountable Nouns", q:"Which word is uncountable: Water, Cup, or Drop?", a:"Water."},
+    {sub:"Collective Nouns", q:"What collective noun describes a group of players working together?", a:"A team."},
+    {sub:"Compound Nouns", q:"What compound noun do you get when you combine \"wall\" and \"paper\"?", a:"Wallpaper (Papel tapiz)."},
+    {sub:"Possessive Nouns", q:"How do you write \"the toys belonging to the babies\" (plural)?", a:"The babies' toys."},
+    {sub:"Gerund Nouns", q:"Identify the gerund noun acting as an object: \"I really enjoy cooking.\"", a:"Cooking."},
+    {sub:"Common Nouns", q:"Change the common noun \"country\" into a proper noun.", a:"Any specific country with a capital letter (e.g., Mexico, Canada, Spain)."},
+    {sub:"Abstract Nouns", q:"Is \"fear\" (miedo) a concrete noun or an abstract noun?", a:"Abstract noun."},
+    {sub:"Countable Nouns", q:"What is the plural of the countable noun \"box\"?", a:"Boxes."},
+    {sub:"Uncountable Nouns", q:"True or False: \"Information\" can be written as \"informations\" if it is a lot.", a:"False (It is always uncountable, never takes an 's')."},
+    {sub:"Compound Nouns", q:"What compound noun is made of a tooth and a brush?", a:"Toothbrush."}
+  ];
+  var BANK_ADJ = [
+    {sub:"Descriptive", q:"What is the comparative and superlative form of the adjective \"happy\"?", a:"Happier and Happiest."},
+    {sub:"Quantitative", q:"Fill the blank for a small quantity: \"There is only a ______ milk left in the fridge.\" (few / little)", a:"Little (Milk is uncountable)."},
+    {sub:"Numeral", q:"In \"I came in third place and won two medals\", which word is an ordinal numeral?", a:"Third."},
+    {sub:"Demonstrative", q:"If a house is far away from you, do you say \"this house\" or \"that house\"?", a:"That house."},
+    {sub:"Possessive", q:"What is the possessive adjective for the pronoun \"we\"?", a:"Our (Nuestro/a)."},
+    {sub:"Interrogative", q:"Complete the question: \"______ color do you prefer, red or blue?\"", a:"Which (Used when there are limited choices)."},
+    {sub:"Distributive", q:"Complete the sentence: \"Every student (has / have) a laptop.\"", a:"Has (Distributive adjectives use singular verbs)."},
+    {sub:"Indefinite", q:"Choose the indefinite adjective: \"Do you have (any / many) questions? I can answer them all.\"", a:"Any."},
+    {sub:"Proper Adjectives", q:"If a car is made in Germany, it is a __________ car.", a:"German car."},
+    {sub:"Compound Adjectives", q:"Combine \"old\" and \"fashioned\" with a hyphen to describe a vintage dress.", a:"An old-fashioned dress."},
+    {sub:"Descriptive", q:"What is the comparative form of the long adjective \"expensive\"?", a:"More expensive."}
+  ];
+
 
   var SUERTE = [
     {msg:"✈️ VIP passport! +20 points", delta:20},
@@ -407,7 +490,7 @@ document.addEventListener("DOMContentLoaded", function(){
     var code = genCode();
     myId = genId(); myName = name; isHost = true; roomCode = code;
     var data = {
-      meta:{ state:"lobby", host:myId, laps:laps, points:pointsCfg, turnIndex:0, order:null, die:0, lastEvent:{message:"Room created",t:Date.now()} },
+      meta:{ state:"lobby", host:myId, laps:laps, points:pointsCfg, turnIndex:0, order:null, die:0, activeCard:null, lastEvent:{message:"Room created",t:Date.now()} },
       players:{}
     };
     data.players[myId] = { name:name, color:COLORS[0], position:0, lap:0, points:0, correct:0, joined:Date.now() };
@@ -503,7 +586,7 @@ document.addEventListener("DOMContentLoaded", function(){
     var ids = Object.keys(room.players);
     if(ids.length<2) return;
     var order = shuffle(ids); // Fisher-Yates
-    restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, lastEvent:{message:"The journey begins!",t:Date.now()} });
+    restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, activeCard:null, lastEvent:{message:"The journey begins!",t:Date.now()} });
   }
 
   /* ===================== GAME RENDER ===================== */
@@ -551,6 +634,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(meta.lastEvent && meta.lastEvent.message && failCount===0){ $("event-box").textContent = meta.lastEvent.message; }
     $("btn-skip").style.display = isHost ? "block" : "none";
     renderScore();
+    syncOpenCard();
   }
 
   function dieFace(n){ return ["🎲","⚀","⚁","⚂","⚃","⚄","⚅"][n]||"🎲"; }
@@ -618,12 +702,120 @@ document.addEventListener("DOMContentLoaded", function(){
   function resolveCell(idx, prefix){
     var cell=BOARD[idx];
     if(cell.type==="corner" && cell.cat==="start"){ finishTurn(prefix, "passed Start"); return; }
-    if(cell.type==="cat"){ presentQuiz(buildQuestion(cell.cat), cell.cat, prefix); return; }
+    if(cell.type==="cat"){ beginOpenCard(cell.cat, prefix); return; }
     if(cell.cat==="aduana"){ var q=buildQuestion("verb"); q.label="Customs"; presentQuiz(q,"aduana",prefix); return; }
     if(cell.cat==="habla"){ presentQuiz(buildHabla(),"habla",prefix); return; }
     if(cell.cat==="suerte"){ presentCard(prefix); return; }
     finishTurn(prefix,"");
   }
+
+  /* ===================== OPEN CARD (teacher-graded, synced) =====================
+     The active card lives in meta.activeCard so EVERY device can render it:
+       { cat, idx, by (player id), revealed (bool), prefix (array) }
+     - The turn player or the host can reveal the official answer.
+     - Only the host grades (Correct / Incorrect); grading applies points to
+       the turn player, clears the card and advances the turn.
+  ============================================================================== */
+  var BANKS = { verb:(typeof BANK_VERB!=="undefined"?BANK_VERB:[]), adj:(typeof BANK_ADJ!=="undefined"?BANK_ADJ:[]), noun:(typeof BANK_NOUN!=="undefined"?BANK_NOUN:[]) };
+  var CATMETA = { verb:{label:"Verbs", tag:"verb"}, adj:{label:"Adjectives", tag:"adj"}, noun:{label:"Nouns", tag:"noun"} };
+  var curCard = { by:null, cat:null, idx:null, revealed:false, active:false };
+
+  // The turn player draws a card, writes it to Firebase, then the synced flow takes over.
+  function beginOpenCard(cat, prefix){
+    var bank = BANKS[cat] || [];
+    if(!bank.length){ presentQuiz(buildQuestion(cat), cat, prefix); return; } // safety fallback
+    var idx = rand(bank.length);
+    var ac = { cat:cat, idx:idx, by:myId, revealed:false, prefix:prefix||[] };
+    room.meta.activeCard = ac;          // local, so it opens immediately
+    syncOpenCard();
+    restPatch(roomCode+"/meta", { activeCard:ac }).then(function(){ acting=false; }); // resume polling once written
+  }
+
+  function sameCard(ac){ return curCard.active && ac && curCard.by===ac.by && curCard.cat===ac.cat && curCard.idx===ac.idx; }
+
+  // Called on every render; opens/updates/closes the card modal from shared state.
+  function syncOpenCard(){
+    var ac = room && room.meta ? room.meta.activeCard : null;
+    if(!ac){ if(curCard.active){ curCard.active=false; closeModal(); } return; }
+    if(sameCard(ac) && curCard.revealed && !ac.revealed){ return; } // ignore stale (reveal is monotonic)
+    if(sameCard(ac) && curCard.revealed===!!ac.revealed){ return; } // no change
+    curCard = { by:ac.by, cat:ac.cat, idx:ac.idx, revealed:!!ac.revealed, active:true };
+    renderOpenCard(ac);
+  }
+
+  function renderOpenCard(ac){
+    var bank = BANKS[ac.cat] || [];
+    var card = bank[ac.idx];
+    if(!card){ return; }
+    var meta = CATMETA[ac.cat]; var pts = pointsFor(ac.cat);
+    modalOpen = true;
+    var tag=$("q-tag"); tag.className="qtag "+meta.tag; tag.textContent = meta.label + (card.sub?(" · "+card.sub):"");
+    $("q-prompt").innerHTML = escapeHtml(card.q);
+    $("q-speak").style.display="none";
+    var opts=$("q-opts"); opts.innerHTML="";
+    var ans=$("q-answer"); var judge=$("q-judge");
+    judge.innerHTML=""; judge.style.display="none";
+
+    var byPlayer = room.players[ac.by];
+    var byName = byPlayer ? byPlayer.name : "The team";
+    var amTurn = (ac.by===myId);
+
+    if(!ac.revealed){
+      ans.style.display="none"; ans.innerHTML="";
+      var revealBtn=document.createElement("button");
+      revealBtn.className="btn reveal"; revealBtn.textContent="Show answer";
+      if(amTurn || isHost){
+        revealBtn.addEventListener("click", revealOpen);
+        opts.appendChild(revealBtn);
+        $("q-foot").textContent = amTurn ? "Discuss your answer out loud, then reveal it." : "Reveal when the team has answered.";
+      } else {
+        $("q-foot").textContent = byName + " is answering…";
+      }
+    } else {
+      ans.style.display="block";
+      ans.innerHTML='<span class="lbl">Official answer</span>'+escapeHtml(card.a);
+      if(isHost){
+        var ok=document.createElement("button"); ok.className="btn judge-ok"; ok.textContent="Correct (+"+pts+")";
+        ok.addEventListener("click", function(){ gradeOpen(ac, true); });
+        var no=document.createElement("button"); no.className="btn judge-no"; no.textContent="Incorrect";
+        no.addEventListener("click", function(){ gradeOpen(ac, false); });
+        var note=document.createElement("div"); note.className="note"; note.textContent="Did "+byName+" get it right? You decide.";
+        judge.appendChild(ok); judge.appendChild(no); judge.appendChild(note);
+        judge.style.display="grid";
+        $("q-foot").textContent="";
+      } else {
+        $("q-foot").textContent = "Waiting for the host to grade…";
+      }
+    }
+    $("overlay").classList.add("active");
+  }
+
+  function revealOpen(){
+    if(!room.meta || !room.meta.activeCard) return;
+    room.meta.activeCard.revealed = true;   // optimistic local
+    syncOpenCard();
+    restPatch(roomCode+"/meta/activeCard", { revealed:true });
+  }
+
+  function gradeOpen(ac, correct){
+    if(!isHost) return;
+    var byId = ac.by; var p = room.players[byId];
+    var meta = CATMETA[ac.cat]; var pts = pointsFor(ac.cat);
+    if(p && correct){
+      var np=(p.points||0)+pts, nc=(p.correct||0)+1;
+      p.points=np; p.correct=nc;
+      restPatch(roomCode+"/players/"+byId, { points:np, correct:nc });
+    }
+    var name = p ? p.name : "Player";
+    var parts = (ac.prefix && ac.prefix.length) ? ac.prefix.slice() : [];
+    parts.push(correct ? ("answered "+meta.label+" correctly (+"+pts+")") : ("missed "+meta.label));
+    var msg = name + " " + parts.join(" · ");
+    // clear card + advance turn
+    room.meta.activeCard=null; curCard.active=false; closeModal();
+    var order=room.meta.order||[]; var next=(room.meta.turnIndex+1)%order.length;
+    restPatch(roomCode+"/meta", { turnIndex:next, activeCard:null, lastEvent:{message:msg, t:Date.now()} }).then(function(){ poll(); });
+  }
+
 
   /* ===================== QUESTIONS ===================== */
   function regAdj(base, sup){ return sup ? base+"est" : base+"er"; }
@@ -710,6 +902,7 @@ document.addEventListener("DOMContentLoaded", function(){
     sp.onclick=function(){ speak(q.speak); };
     if(q.autoSpeak){ setTimeout(function(){ speak(q.speak); }, 350); }
     var box=$("q-opts"); box.innerHTML=""; $("q-foot").textContent="";
+    $("q-answer").style.display="none"; $("q-judge").style.display="none";
     var answered=false;
     q.options.forEach(function(opt){
       var btn=document.createElement("button"); btn.className="opt"; btn.textContent=opt;
@@ -742,6 +935,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("q-prompt").innerHTML=card.msg;
     $("q-speak").style.display="none";
     $("q-opts").innerHTML=""; $("q-foot").textContent="";
+    $("q-answer").style.display="none"; $("q-judge").style.display="none";
     var ok=document.createElement("button"); ok.className="opt"; ok.textContent="Continue";
     var me=myMe(); me.points=Math.max(0,(me.points||0)+card.delta);
     ok.addEventListener("click", function(){ closeModal(); finishTurn(prefix, me.name+": "+card.msg); });
@@ -749,7 +943,12 @@ document.addEventListener("DOMContentLoaded", function(){
     $("overlay").classList.add("active");
   }
 
-  function closeModal(){ modalOpen=false; $("overlay").classList.remove("active"); }
+  function closeModal(){
+    modalOpen=false;
+    $("overlay").classList.remove("active");
+    var a=$("q-answer"); if(a){ a.style.display="none"; a.innerHTML=""; }
+    var j=$("q-judge"); if(j){ j.style.display="none"; j.innerHTML=""; }
+  }
 
   function finishTurn(prefix, line){
     var me=myMe();
@@ -769,7 +968,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!order.length) return;
     var curId=order[meta.turnIndex]; var curName=room.players[curId]?room.players[curId].name:"player";
     var next=(meta.turnIndex+1)%order.length;
-    restPatch(roomCode+"/meta", { turnIndex:next, lastEvent:{message:"Skipped "+curName+"'s turn", t:Date.now()} });
+    room.meta.activeCard=null; curCard.active=false; closeModal();
+    restPatch(roomCode+"/meta", { turnIndex:next, activeCard:null, lastEvent:{message:"Skipped "+curName+"'s turn", t:Date.now()} });
     poll();
   }
 
@@ -781,7 +981,7 @@ document.addEventListener("DOMContentLoaded", function(){
     var order=shuffle(ids);
     acting=false; modalOpen=false; $("overlay").classList.remove("active");
     restPatch(roomCode+"/players", reset).then(function(){
-      restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, die:0, finishedBy:null, lastEvent:{message:"New round — good luck!",t:Date.now()} }).then(function(){ poll(); });
+      restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, die:0, activeCard:null, finishedBy:null, lastEvent:{message:"New round — good luck!",t:Date.now()} }).then(function(){ poll(); });
     });
   }
 
