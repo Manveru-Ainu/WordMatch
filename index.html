@@ -203,15 +203,17 @@
         <option value="3" selected>3 laps (recommended)</option>
         <option value="5">5 laps (long)</option>
       </select>
-      <label class="fld">Points per category (you can adjust them)</label>
+      <label class="fld">Coins per category — also sets price (×2) and rent</label>
       <div class="players" style="grid-template-columns:repeat(2,1fr);">
-        <div><span class="hint" style="display:block;text-align:left;">Verbs</span><input type="text" id="pt-verb" value="10"></div>
-        <div><span class="hint" style="display:block;text-align:left;">Adjectives</span><input type="text" id="pt-adj" value="15"></div>
-        <div><span class="hint" style="display:block;text-align:left;">Nouns</span><input type="text" id="pt-noun" value="15"></div>
+        <div><span class="hint" style="display:block;text-align:left;">Verbs</span><input type="text" id="pt-verb" value="15"></div>
+        <div><span class="hint" style="display:block;text-align:left;">Adjectives</span><input type="text" id="pt-adj" value="10"></div>
+        <div><span class="hint" style="display:block;text-align:left;">Nouns</span><input type="text" id="pt-noun" value="10"></div>
         <div><span class="hint" style="display:block;text-align:left;">Phrasal verbs</span><input type="text" id="pt-phr" value="20"></div>
       </div>
-      <span class="hint" style="display:block;text-align:left;margin-top:10px;">Bonus for completing a lap</span>
-      <input type="text" id="pt-lap" value="25">
+      <div class="players" style="grid-template-columns:repeat(2,1fr);">
+        <div><span class="hint" style="display:block;text-align:left;margin-top:10px;">Starting coins</span><input type="text" id="pt-start" value="100"></div>
+        <div><span class="hint" style="display:block;text-align:left;margin-top:10px;">Salary for passing Start</span><input type="text" id="pt-lap" value="25"></div>
+      </div>
       <button id="btn-setup-create" class="btn green block">Create room</button>
       <div id="setup-msg" class="msg"></div>
     </div>
@@ -231,6 +233,7 @@
       <div class="players" id="lobby-players"></div>
       <button id="btn-start" class="btn green block" disabled>Start game</button>
       <p class="hint" id="lobby-hint"></p>
+      <button id="btn-leave-lobby" class="btn coral small block">Leave room</button>
       <div class="warn" id="lobby-warn"></div>
     </div>
   </section>
@@ -249,16 +252,17 @@
         <div class="card turnbox">
           <span class="hint">Turn</span>
           <div class="who" id="turn-who">—</div>
-          <button id="btn-roll" class="btn block">🎲 Roll the die</button>
+          <button id="btn-roll" class="btn block">🎲 Roll the dice</button>
           <p class="hint" id="turn-hint"></p>
           <div class="event" id="event-box" style="margin-top:12px;">Let's play!</div>
         </div>
         <div class="card">
           <h3 style="color:var(--muted); font-size:15px; margin-bottom:6px;">Scoreboard</h3>
-          <table class="score"><thead><tr><th>Player</th><th>Lap</th><th>Correct</th><th>Points</th></tr></thead>
+          <table class="score"><thead><tr><th>Player</th><th>Coins</th><th>Props</th><th>Net</th></tr></thead>
           <tbody id="score-body"></tbody></table>
         </div>
         <button id="btn-skip" class="btn gray small block" style="display:none;">Skip turn (host)</button>
+        <button id="btn-leave" class="btn coral small block">Leave / New game</button>
       </div>
     </div>
   </section>
@@ -269,7 +273,7 @@
       <div class="crown">👑</div>
       <span class="hint">Winner!</span>
       <h2 id="end-winner">—</h2>
-      <table class="score" style="margin-top:14px;"><thead><tr><th>Place</th><th>Player</th><th>Correct</th><th>Points</th></tr></thead>
+      <table class="score" style="margin-top:14px;"><thead><tr><th>Place</th><th>Player</th><th>Coins</th><th>Props</th><th>Net</th></tr></thead>
       <tbody id="end-body"></tbody></table>
       <button id="btn-rematch" class="btn green block" style="display:none;">Play again (same room)</button>
       <button id="btn-again" class="btn gray block">Back to start</button>
@@ -409,12 +413,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
 
   var SUERTE = [
-    {msg:"✈️ VIP passport! +20 points", delta:20},
-    {msg:"🧳 Lost a suitcase. -10 points", delta:-10},
-    {msg:"💸 Free souvenir. +10 points", delta:10},
-    {msg:"🌧️ Flight delayed. -5 points", delta:-5},
-    {msg:"🎁 Traveler's prize. +15 points", delta:15},
-    {msg:"📸 Perfect photo. +5 points", delta:5}
+    {msg:"✈️ VIP passport! +20 coins", delta:20},
+    {msg:"🧳 Lost a suitcase. -10 coins", delta:-10},
+    {msg:"💸 Free souvenir. +10 coins", delta:10},
+    {msg:"🌧️ Flight delayed. -5 coins", delta:-5},
+    {msg:"🎁 Traveler's prize. +15 coins", delta:15},
+    {msg:"📸 Perfect photo. +5 coins", delta:5}
   ];
 
   /* ===================== BOARD (ring, 10 cells per row, Monopoly-style) =====================
@@ -447,7 +451,30 @@ document.addEventListener("DOMContentLoaded", function(){
   var modalOpen = false;
   var acting = false;
   var failCount = 0;
-  var pointsCfg = {verb:10, adj:15, noun:15, phrasal:20, lap:25};
+  var pointsCfg = {verb:15, adj:10, noun:10, phrasal:20, lap:25};
+  var startCoins = 100;
+
+  /* ----- Property economics ----- */
+  // Category base value V (from pointsCfg). Buy price = 2V. Rent = V. Owning a full
+  // side (all 8 of a category) doubles that side's rent.
+  function catValue(cat){ return pointsCfg[cat] || 10; }
+  function buyPrice(cat){ return catValue(cat) * 2; }
+  function owners(){ return (room && room.meta && room.meta.owners) ? room.meta.owners : {}; }
+  function ownerOf(idx){ var o=owners(); return o[idx]||null; }
+  function sideCells(cat){ var a=[]; for(var i=0;i<BOARD.length;i++){ if(BOARD[i].type==="cat" && BOARD[i].cat===cat) a.push(i); } return a; }
+  function ownsWholeSide(playerId, cat){ var cells=sideCells(cat); var o=owners(); for(var i=0;i<cells.length;i++){ if(o[cells[i]]!==playerId) return false; } return true; }
+  function rentFor(idx){
+    var cell=BOARD[idx]; if(!cell || cell.type!=="cat") return 0;
+    var base=catValue(cell.cat); var own=ownerOf(idx);
+    return (own && ownsWholeSide(own, cell.cat)) ? base*2 : base;
+  }
+  function propsOwnedBy(playerId){ var o=owners(); var c=0; for(var k in o){ if(o[k]===playerId) c++; } return c; }
+  function netWorth(playerId){
+    var coins = (room.players[playerId] && room.players[playerId].coins!=null) ? room.players[playerId].coins : 0;
+    var o=owners(); var assets=0;
+    for(var k in o){ if(o[k]===playerId){ var cell=BOARD[k]; if(cell) assets+=buyPrice(cell.cat); } }
+    return coins + assets;
+  }
 
   /* ===================== HELPERS ===================== */
   function $(id){return document.getElementById(id);}
@@ -488,18 +515,19 @@ document.addEventListener("DOMContentLoaded", function(){
     var name = $("inp-name-host").value.trim();
     if(!name){ $("setup-msg").textContent = "Enter your name or team."; return; }
     pointsCfg = {
-      verb:num($("pt-verb").value,10), adj:num($("pt-adj").value,15),
-      noun:num($("pt-noun").value,15), phrasal:num($("pt-phr").value,20),
+      verb:num($("pt-verb").value,15), adj:num($("pt-adj").value,10),
+      noun:num($("pt-noun").value,10), phrasal:num($("pt-phr").value,20),
       lap:num($("pt-lap").value,25)
     };
+    startCoins = num($("pt-start").value,100);
     var laps = num($("sel-laps").value,3);
     var code = genCode();
     myId = genId(); myName = name; isHost = true; roomCode = code;
     var data = {
-      meta:{ state:"lobby", host:myId, laps:laps, points:pointsCfg, turnIndex:0, order:null, die:0, activeCard:null, lastEvent:{message:"Room created",t:Date.now()} },
+      meta:{ state:"lobby", host:myId, laps:laps, points:pointsCfg, startCoins:startCoins, owners:{}, turnIndex:0, order:null, die:0, activeCard:null, lastEvent:{message:"Room created",t:Date.now()} },
       players:{}
     };
-    data.players[myId] = { name:name, color:COLORS[0], position:0, lap:0, points:0, correct:0, joined:Date.now() };
+    data.players[myId] = { name:name, color:COLORS[0], position:0, lap:0, coins:startCoins, correct:0, joined:Date.now() };
     $("btn-setup-create").disabled = true;
     restPut(code, data).then(function(res){
       $("btn-setup-create").disabled = false;
@@ -521,7 +549,8 @@ document.addEventListener("DOMContentLoaded", function(){
       var n = data.players ? Object.keys(data.players).length : 0;
       if(n >= 6){ $("home-msg").textContent = "The room already has 6 players."; return; }
       myId = genId(); myName = name; isHost = false; roomCode = code;
-      var player = { name:name, color:COLORS[n % COLORS.length], position:0, lap:0, points:0, correct:0, joined:Date.now() };
+      var sc = (data.meta && data.meta.startCoins!=null) ? data.meta.startCoins : 100;
+      var player = { name:name, color:COLORS[n % COLORS.length], position:0, lap:0, coins:sc, correct:0, joined:Date.now() };
       restPatch(code+"/players/"+myId, valObj(myId,player)).then(function(res){
         if(res===undefined){ $("home-msg").textContent = CONN_MSG; return; }
         if(data.meta.state==="playing" && data.meta.order){
@@ -548,6 +577,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!data || !data.meta){ return; }
       room = data;
       if(data.meta.points){ pointsCfg = data.meta.points; }
+      if(data.meta.startCoins!=null){ startCoins = data.meta.startCoins; }
       route();
     });
   }
@@ -592,7 +622,7 @@ document.addEventListener("DOMContentLoaded", function(){
     var ids = Object.keys(room.players);
     if(ids.length<2) return;
     var order = shuffle(ids); // Fisher-Yates
-    restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, activeCard:null, lastEvent:{message:"The journey begins!",t:Date.now()} });
+    restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, activeCard:null, owners:{}, lastEvent:{message:"The journey begins!",t:Date.now()} });
   }
 
   /* ===================== GAME RENDER ===================== */
@@ -627,13 +657,19 @@ document.addEventListener("DOMContentLoaded", function(){
       var p=ps[ids[k]]; var cellTok=$("tok-"+((p.position||0)%BOARD.length));
       if(cellTok){ var tk=document.createElement("div"); tk.className="token"; tk.style.background=p.color; tk.textContent=initial(p.name); cellTok.appendChild(tk); }
     }
+    // ownership rings
+    for(var ci=0; ci<BOARD.length; ci++){
+      var ce=$("cell-"+ci); if(!ce) continue;
+      var ow=ownerOf(ci);
+      ce.style.boxShadow = (ow && ps[ow]) ? ("inset 0 0 0 3px "+ps[ow].color) : "none";
+    }
     var order=meta.order||[]; var curId=order[meta.turnIndex];
     var cur=ps[curId];
     $("turn-who").textContent = cur ? cur.name : "—";
     $("turn-who").style.color = cur ? cur.color : "var(--ink)";
     var myTurn = (curId===myId);
     $("btn-roll").disabled = !myTurn || acting || modalOpen;
-    $("turn-hint").textContent = myTurn ? "Your turn! Roll the die." : "Wait for your turn…";
+    $("turn-hint").textContent = myTurn ? "Your turn! Roll the dice." : "Wait for your turn…";
     var me=ps[myId];
     $("lapinfo").textContent = (me?("Your lap: "+(me.lap||0)):"") + "  /  goal: "+(meta.laps||3);
     if(meta.die){ $("die").textContent = dieFace(meta.die); }
@@ -649,14 +685,15 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!room || !room.players) return;
     var ps=room.players, meta=room.meta; var ids=Object.keys(ps);
     var order=meta.order||[]; var curId=order[meta.turnIndex];
-    ids.sort(function(a,b){ return (ps[b].points||0)-(ps[a].points||0); });
+    ids.sort(function(a,b){ return netWorth(b)-netWorth(a); });
     var body=$("score-body"); body.innerHTML="";
     for(var i=0;i<ids.length;i++){
       var id=ids[i], p=ps[id];
       var tr=document.createElement("tr");
       if(id===myId) tr.className="me"; if(id===curId) tr.className+=" turn";
+      var coins=(p.coins!=null?p.coins:startCoins);
       tr.innerHTML='<td><span class="dot" style="background:'+p.color+';width:20px;height:20px;font-size:11px;display:inline-flex;vertical-align:middle;margin-right:6px;">'+initial(p.name)+'</span>'+escapeHtml(p.name)+'</td>'+
-        '<td>'+(p.lap||0)+'</td><td>'+(p.correct||0)+'</td><td class="pts">'+(p.points||0)+'</td>';
+        '<td>'+coins+'</td><td>'+propsOwnedBy(id)+'</td><td class="pts">'+netWorth(id)+'</td>';
       body.appendChild(tr);
     }
   }
@@ -692,10 +729,10 @@ document.addEventListener("DOMContentLoaded", function(){
     var me=myMe();
     var endPos=me.position||0;
     var lapped = (startPos + n) >= BOARD.length;
-    var lap=me.lap||0, points=me.points||0;
+    var lap=me.lap||0, coins=(me.coins!=null?me.coins:startCoins);
     var prefix=[];
-    if(lapped){ lap++; me.lap=lap; points+=pointsCfg.lap; me.points=points; prefix.push("completed lap "+lap+" (+"+pointsCfg.lap+")"); }
-    restPatch(roomCode+"/players/"+myId, {position:endPos, lap:lap, points:points});
+    if(lapped){ lap++; me.lap=lap; coins+=pointsCfg.lap; me.coins=coins; prefix.push("passed Start, salary +"+pointsCfg.lap); }
+    restPatch(roomCode+"/players/"+myId, {position:endPos, lap:lap, coins:coins});
     restPatch(roomCode+"/meta", {die:n});
     renderGame();
     if(lap >= (room.meta.laps||3)){
@@ -708,7 +745,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function resolveCell(idx, prefix){
     var cell=BOARD[idx];
     if(cell.type==="corner" && cell.cat==="start"){ finishTurn(prefix, "passed Start"); return; }
-    if(cell.type==="cat"){ beginOpenCard(cell.cat, prefix); return; }
+    if(cell.type==="cat"){ beginOpenCard(cell.cat, idx, prefix); return; }
     if(cell.cat==="aduana"){ var q=buildQuestion("verb"); q.label="Customs"; presentQuiz(q,"aduana",prefix); return; }
     if(cell.cat==="habla"){ presentQuiz(buildHabla(),"habla",prefix); return; }
     if(cell.cat==="suerte"){ presentCard(prefix); return; }
@@ -727,17 +764,17 @@ document.addEventListener("DOMContentLoaded", function(){
   var curCard = { by:null, cat:null, idx:null, revealed:false, active:false };
 
   // The turn player draws a card, writes it to Firebase, then the synced flow takes over.
-  function beginOpenCard(cat, prefix){
+  function beginOpenCard(cat, cellIdx, prefix){
     var bank = BANKS[cat] || [];
     if(!bank.length){ presentQuiz(buildQuestion(cat), cat, prefix); return; } // safety fallback
     var idx = rand(bank.length);
-    var ac = { cat:cat, idx:idx, by:myId, revealed:false, prefix:prefix||[] };
+    var ac = { cat:cat, idx:idx, cell:cellIdx, by:myId, revealed:false, prefix:prefix||[] };
     room.meta.activeCard = ac;          // local, so it opens immediately
     syncOpenCard();
     restPatch(roomCode+"/meta", { activeCard:ac }).then(function(){ acting=false; }); // resume polling once written
   }
 
-  function sameCard(ac){ return curCard.active && ac && curCard.by===ac.by && curCard.cat===ac.cat && curCard.idx===ac.idx; }
+  function sameCard(ac){ return curCard.active && ac && curCard.by===ac.by && curCard.cat===ac.cat && curCard.idx===ac.idx && curCard.cell===ac.cell; }
 
   // Called on every render; opens/updates/closes the card modal from shared state.
   function syncOpenCard(){
@@ -745,7 +782,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!ac){ if(curCard.active){ curCard.active=false; closeModal(); } return; }
     if(sameCard(ac) && curCard.revealed && !ac.revealed){ return; } // ignore stale (reveal is monotonic)
     if(sameCard(ac) && curCard.revealed===!!ac.revealed){ return; } // no change
-    curCard = { by:ac.by, cat:ac.cat, idx:ac.idx, revealed:!!ac.revealed, active:true };
+    curCard = { by:ac.by, cat:ac.cat, idx:ac.idx, cell:ac.cell, revealed:!!ac.revealed, active:true };
     renderOpenCard(ac);
   }
 
@@ -753,9 +790,16 @@ document.addEventListener("DOMContentLoaded", function(){
     var bank = BANKS[ac.cat] || [];
     var card = bank[ac.idx];
     if(!card){ return; }
-    var meta = CATMETA[ac.cat]; var pts = pointsFor(ac.cat);
+    var meta = CATMETA[ac.cat];
     modalOpen = true;
-    var tag=$("q-tag"); tag.className="qtag "+meta.tag; tag.textContent = meta.label + (card.sub?(" · "+card.sub):"");
+    // property status
+    var own = ownerOf(ac.cell);
+    var V = catValue(ac.cat), price = buyPrice(ac.cat), rent = rentFor(ac.cell);
+    var statusTxt;
+    if(own===null){ statusTxt = " · 🏳️ free (buy "+price+")"; }
+    else if(own===ac.by){ statusTxt = " · 🏠 your property"; }
+    else { var onm=room.players[own]?room.players[own].name:"owner"; statusTxt = " · 🏠 "+onm+" (rent "+rent+")"; }
+    var tag=$("q-tag"); tag.className="qtag "+meta.tag; tag.textContent = meta.label + (card.sub?(" · "+card.sub):"") + statusTxt;
     $("q-prompt").innerHTML = escapeHtml(card.q);
     $("q-speak").style.display="none";
     var opts=$("q-opts"); opts.innerHTML="";
@@ -781,9 +825,11 @@ document.addEventListener("DOMContentLoaded", function(){
       ans.style.display="block";
       ans.innerHTML='<span class="lbl">Official answer</span>'+escapeHtml(card.a);
       if(isHost){
-        var ok=document.createElement("button"); ok.className="btn judge-ok"; ok.textContent="Correct (+"+pts+")";
+        var okLabel = (own===null||own===ac.by) ? ("Correct (+"+V+")") : "Correct (no rent)";
+        var noLabel = (own && own!==ac.by) ? ("Incorrect (rent "+rent+")") : "Incorrect";
+        var ok=document.createElement("button"); ok.className="btn judge-ok"; ok.textContent=okLabel;
         ok.addEventListener("click", function(){ gradeOpen(ac, true); });
-        var no=document.createElement("button"); no.className="btn judge-no"; no.textContent="Incorrect";
+        var no=document.createElement("button"); no.className="btn judge-no"; no.textContent=noLabel;
         no.addEventListener("click", function(){ gradeOpen(ac, false); });
         var note=document.createElement("div"); note.className="note"; note.textContent="Did "+byName+" get it right? You decide.";
         judge.appendChild(ok); judge.appendChild(no); judge.appendChild(note);
@@ -803,23 +849,73 @@ document.addEventListener("DOMContentLoaded", function(){
     restPatch(roomCode+"/meta/activeCard", { revealed:true });
   }
 
-  function gradeOpen(ac, correct){
-    if(!isHost) return;
-    var byId = ac.by; var p = room.players[byId];
-    var meta = CATMETA[ac.cat]; var pts = pointsFor(ac.cat);
-    if(p && correct){
-      var np=(p.points||0)+pts, nc=(p.correct||0)+1;
-      p.points=np; p.correct=nc;
-      restPatch(roomCode+"/players/"+byId, { points:np, correct:nc });
-    }
-    var name = p ? p.name : "Player";
-    var parts = (ac.prefix && ac.prefix.length) ? ac.prefix.slice() : [];
-    parts.push(correct ? ("answered "+meta.label+" correctly (+"+pts+")") : ("missed "+meta.label));
-    var msg = name + " " + parts.join(" · ");
-    // clear card + advance turn
+  function advanceAfterCard(msg){
     room.meta.activeCard=null; curCard.active=false; closeModal();
     var order=room.meta.order||[]; var next=(room.meta.turnIndex+1)%order.length;
-    restPatch(roomCode+"/meta", { turnIndex:next, activeCard:null, lastEvent:{message:msg, t:Date.now()} }).then(function(){ poll(); });
+    restPatch(roomCode+"/meta", { turnIndex:next, activeCard:null, lastEvent:{message:msg||"", t:Date.now()} }).then(function(){ poll(); });
+  }
+
+  function offerBuy(ac, p, parts, price){
+    var judge=$("q-judge"); judge.innerHTML="";
+    var buy=document.createElement("button"); buy.className="btn judge-ok"; buy.textContent="They buy (−"+price+")";
+    buy.addEventListener("click", function(){
+      var coins=Math.max(0,(p.coins!=null?p.coins:startCoins)-price); p.coins=coins;
+      var o=owners(); o[ac.cell]=ac.by; room.meta.owners=o;
+      restPatch(roomCode+"/players/"+ac.by, { coins:coins });
+      restPatch(roomCode+"/meta/owners", valObj(ac.cell, ac.by));
+      parts.push("bought the property (−"+price+")");
+      advanceAfterCard(p.name+" "+parts.join(" · "));
+    });
+    var no=document.createElement("button"); no.className="btn judge-no"; no.textContent="Don't buy";
+    no.addEventListener("click", function(){ advanceAfterCard(p.name+" "+parts.join(" · ")); });
+    var info=document.createElement("div"); info.className="note"; info.textContent="Buy this "+CATMETA[ac.cat].label+" property for "+price+"? ("+p.name+" has "+p.coins+" coins)";
+    judge.appendChild(buy); judge.appendChild(no); judge.appendChild(info);
+    judge.style.display="grid"; $("q-foot").textContent="";
+  }
+
+  function gradeOpen(ac, correct){
+    if(!isHost) return;
+    var byId=ac.by, p=room.players[byId];
+    if(!p){ advanceAfterCard(""); return; }
+    var cat=ac.cat, label=CATMETA[cat].label;
+    var V=catValue(cat), price=buyPrice(cat);
+    var own=ownerOf(ac.cell);
+    var parts=(ac.prefix&&ac.prefix.length)?ac.prefix.slice():[];
+    var coins=(p.coins!=null?p.coins:startCoins);
+
+    if(correct){
+      p.correct=(p.correct||0)+1;
+      if(own===null){
+        coins+=V; p.coins=coins;
+        restPatch(roomCode+"/players/"+byId, { coins:coins, correct:p.correct });
+        parts.push("correct "+label+" (+"+V+")");
+        if(coins>=price){ offerBuy(ac, p, parts, price); return; }
+        parts.push("not enough to buy ("+price+")");
+        advanceAfterCard(p.name+" "+parts.join(" · ")); return;
+      }
+      if(own===byId){
+        coins+=V; p.coins=coins;
+        restPatch(roomCode+"/players/"+byId, { coins:coins, correct:p.correct });
+        parts.push("correct on own property (+"+V+")");
+        advanceAfterCard(p.name+" "+parts.join(" · ")); return;
+      }
+      // opponent's property, answered correctly -> no rent
+      restPatch(roomCode+"/players/"+byId, { correct:p.correct });
+      var on1=room.players[own]?room.players[own].name:"owner";
+      parts.push("correct — dodged rent to "+on1);
+      advanceAfterCard(p.name+" "+parts.join(" · ")); return;
+    } else {
+      if(own && own!==byId){
+        var rent=rentFor(ac.cell); var owner=room.players[own];
+        coins=Math.max(0, coins-rent); p.coins=coins;
+        restPatch(roomCode+"/players/"+byId, { coins:coins });
+        if(owner){ var oc=(owner.coins!=null?owner.coins:startCoins)+rent; owner.coins=oc; restPatch(roomCode+"/players/"+own, { coins:oc }); }
+        parts.push("missed "+label+" — paid rent "+rent+" to "+(owner?owner.name:"owner"));
+        advanceAfterCard(p.name+" "+parts.join(" · ")); return;
+      }
+      parts.push("missed "+label);
+      advanceAfterCard(p.name+" "+parts.join(" · ")); return;
+    }
   }
 
 
@@ -923,9 +1019,9 @@ document.addEventListener("DOMContentLoaded", function(){
         }
         var me=myMe();
         var pts = good ? pointsFor(kind) : 0;
-        if(good){ me.points=(me.points||0)+pts; me.correct=(me.correct||0)+1; }
+        if(good){ me.coins=(me.coins!=null?me.coins:startCoins)+pts; me.correct=(me.correct||0)+1; }
         if(kind!=="habla") speak(q.speak);
-        $("q-foot").textContent = good ? ("Correct! +"+pts+" points") : ("The answer was: "+q.correct);
+        $("q-foot").textContent = good ? ("Correct! +"+pts+" coins") : ("The answer was: "+q.correct);
         var line = me.name + (good ? (" got "+q.label+" right (+"+pts+")") : (" missed "+q.label));
         setTimeout(function(){ closeModal(); finishTurn(prefix, line); }, 1400);
       });
@@ -943,7 +1039,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("q-opts").innerHTML=""; $("q-foot").textContent="";
     $("q-answer").style.display="none"; $("q-judge").style.display="none";
     var ok=document.createElement("button"); ok.className="opt"; ok.textContent="Continue";
-    var me=myMe(); me.points=Math.max(0,(me.points||0)+card.delta);
+    var me=myMe(); me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+card.delta);
     ok.addEventListener("click", function(){ closeModal(); finishTurn(prefix, me.name+": "+card.msg); });
     $("q-opts").appendChild(ok);
     $("overlay").classList.add("active");
@@ -958,7 +1054,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function finishTurn(prefix, line){
     var me=myMe();
-    restPatch(roomCode+"/players/"+myId, { points:me.points||0, correct:me.correct||0, position:me.position||0, lap:me.lap||0 });
+    restPatch(roomCode+"/players/"+myId, { coins:(me.coins!=null?me.coins:startCoins), correct:me.correct||0, position:me.position||0, lap:me.lap||0 });
     var parts=[]; if(prefix && prefix.length) parts=parts.concat(prefix); if(line) parts.push(line);
     var msg = me.name + (parts.length? (" "+parts.join(" · ")) : " played");
     var meta=room.meta, order=meta.order||[];
@@ -982,12 +1078,13 @@ document.addEventListener("DOMContentLoaded", function(){
   function rematch(){
     if(!isHost || !room || !room.players) return;
     var ps=room.players; var ids=Object.keys(ps);
+    var sc=(room.meta&&room.meta.startCoins!=null)?room.meta.startCoins:startCoins;
     var reset={};
-    for(var i=0;i<ids.length;i++){ var p=ps[ids[i]]; reset[ids[i]]={ name:p.name, color:p.color, position:0, lap:0, points:0, correct:0, joined:p.joined||Date.now() }; }
+    for(var i=0;i<ids.length;i++){ var p=ps[ids[i]]; reset[ids[i]]={ name:p.name, color:p.color, position:0, lap:0, coins:sc, correct:0, joined:p.joined||Date.now() }; }
     var order=shuffle(ids);
     acting=false; modalOpen=false; $("overlay").classList.remove("active");
     restPatch(roomCode+"/players", reset).then(function(){
-      restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, die:0, activeCard:null, finishedBy:null, lastEvent:{message:"New round — good luck!",t:Date.now()} }).then(function(){ poll(); });
+      restPatch(roomCode+"/meta", { state:"playing", order:order, turnIndex:0, die:0, activeCard:null, owners:{}, finishedBy:null, lastEvent:{message:"New round — good luck!",t:Date.now()} }).then(function(){ poll(); });
     });
   }
 
@@ -996,7 +1093,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!room || !room.players) return;
     var ps=room.players; var ids=Object.keys(ps);
     ids.sort(function(a,b){
-      if((ps[b].points||0)!==(ps[a].points||0)) return (ps[b].points||0)-(ps[a].points||0);
+      if(netWorth(b)!==netWorth(a)) return netWorth(b)-netWorth(a);
       return (ps[b].correct||0)-(ps[a].correct||0);
     });
     if(ids.length){ var w=ps[ids[0]]; $("end-winner").textContent=w.name; $("end-winner").style.color=w.color; }
@@ -1004,9 +1101,10 @@ document.addEventListener("DOMContentLoaded", function(){
     var body=$("end-body"); body.innerHTML="";
     var medals=["🥇","🥈","🥉"];
     for(var i=0;i<ids.length;i++){
-      var p=ps[ids[i]];
+      var id=ids[i], p=ps[id];
+      var coins=(p.coins!=null?p.coins:startCoins);
       var tr=document.createElement("tr");
-      tr.innerHTML='<td>'+(medals[i]||(i+1))+'</td><td><span class="dot" style="background:'+p.color+';width:20px;height:20px;font-size:11px;display:inline-flex;vertical-align:middle;margin-right:6px;">'+initial(p.name)+'</span>'+escapeHtml(p.name)+'</td><td>'+(p.correct||0)+'</td><td class="pts">'+(p.points||0)+'</td>';
+      tr.innerHTML='<td>'+(medals[i]||(i+1))+'</td><td><span class="dot" style="background:'+p.color+';width:20px;height:20px;font-size:11px;display:inline-flex;vertical-align:middle;margin-right:6px;">'+initial(p.name)+'</span>'+escapeHtml(p.name)+'</td><td>'+coins+'</td><td>'+propsOwnedBy(id)+'</td><td class="pts">'+netWorth(id)+'</td>';
       body.appendChild(tr);
     }
   }
@@ -1023,6 +1121,14 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   $("btn-again").addEventListener("click", function(){ stopPolling(); clearLocal(); location.reload(); });
   $("btn-rematch").addEventListener("click", rematch);
+  function leaveGame(){
+    var ok = window.confirm("Leave this room and start fresh? Your session will be cleared.");
+    if(!ok) return;
+    stopPolling(); clearLocal(); roomCode=null; myId=null;
+    location.reload();
+  }
+  $("btn-leave").addEventListener("click", leaveGame);
+  $("btn-leave-lobby").addEventListener("click", leaveGame);
   $("inp-code").addEventListener("input", function(){ this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
 
   /* ===================== REJOIN ===================== */
