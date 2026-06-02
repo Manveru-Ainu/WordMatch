@@ -258,6 +258,7 @@
         </div>
         <button id="btn-skip" class="btn gray small block" style="display:none;">Skip turn (host)</button>
         <button id="btn-endgame" class="btn coral small block" style="display:none;">End game &amp; show winner (host)</button>
+        <button id="btn-close" class="btn gray small block" style="display:none;">Close room — everyone exits (host)</button>
         <button id="btn-leave" class="btn coral small block">Leave / New game</button>
       </div>
     </div>
@@ -272,7 +273,8 @@
       <table class="score" style="margin-top:14px;"><thead><tr><th>Place</th><th>Player</th><th>Coins</th><th>Props</th><th>Net</th></tr></thead>
       <tbody id="end-body"></tbody></table>
       <button id="btn-rematch" class="btn green block" style="display:none;">Play again (same room)</button>
-      <button id="btn-again" class="btn gray block">Back to start</button>
+      <button id="btn-close-end" class="btn gray block" style="display:none;">Close room — everyone exits</button>
+      <button id="btn-again" class="btn coral block">Leave (this device)</button>
     </div>
   </section>
 
@@ -458,6 +460,7 @@ document.addEventListener("DOMContentLoaded", function(){
   var modalOpen = false;
   var acting = false;
   var failCount = 0;
+  var inRoom = false;
   var pointsCfg = {verb:15, adj:10, noun:10, phrasal:20, lap:25};
   var startCoins = 100;
 
@@ -508,6 +511,9 @@ document.addEventListener("DOMContentLoaded", function(){
   function restPatch(path,data){
     return fetch(url(path),{method:"PATCH",body:JSON.stringify(data)}).then(function(r){return r.json();}).catch(function(){ return undefined; });
   }
+  function restDelete(path){
+    return fetch(url(path),{method:"DELETE"}).then(function(r){return r.json();}).catch(function(){ return undefined; });
+  }
 
   /* ===================== SCREENS ===================== */
   function show(screen){
@@ -540,7 +546,7 @@ document.addEventListener("DOMContentLoaded", function(){
       $("btn-setup-create").disabled = false;
       if(res===undefined){ $("setup-msg").textContent = CONN_MSG; return; }
       if(res && res.error){ $("setup-msg").textContent = "Firebase: " + res.error; return; }
-      saveLocal(); startPolling(); show("lobby");
+      saveLocal(); inRoom=true; startPolling(); show("lobby");
     });
   }
 
@@ -565,7 +571,7 @@ document.addEventListener("DOMContentLoaded", function(){
           restPatch(code+"/meta", {order:ord});
         }
         $("home-msg").textContent = "";
-        saveLocal(); startPolling(); show(data.meta.state==="playing"?"game":"lobby");
+        saveLocal(); inRoom=true; startPolling(); show(data.meta.state==="playing"?"game":"lobby");
       });
     });
   }
@@ -581,12 +587,25 @@ document.addEventListener("DOMContentLoaded", function(){
     restGet(roomCode).then(function(data){
       if(data===undefined){ failCount++; if(failCount>=2){ showWarn(CONN_MSG); } return; }
       failCount=0; hideWarn();
-      if(!data || !data.meta){ return; }
+      if(!data || !data.meta){
+        // Room no longer exists (host closed it). Only act if we were really in it.
+        if(inRoom){ roomClosedExit(); }
+        return;
+      }
+      inRoom = true;
       room = data;
       if(data.meta.points){ pointsCfg = data.meta.points; }
       if(data.meta.startCoins!=null){ startCoins = data.meta.startCoins; }
       route();
     });
+  }
+
+  function roomClosedExit(){
+    stopPolling(); clearLocal();
+    inRoom=false; roomCode=null; myId=null; room=null;
+    modalOpen=false; $("overlay").classList.remove("active");
+    show("home");
+    $("home-msg").textContent = "The room was closed by the host.";
   }
   function showWarn(t){ var w=$("lobby-warn"); if(w){ w.textContent=t; w.classList.add("show"); } var e=$("event-box"); if(e && $("screen-game").classList.contains("active")) e.textContent=t; }
   function hideWarn(){ var w=$("lobby-warn"); if(w) w.classList.remove("show"); }
@@ -693,6 +712,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(meta.lastEvent && meta.lastEvent.message && failCount===0){ $("event-box").textContent = meta.lastEvent.message; }
     $("btn-skip").style.display = isHost ? "block" : "none";
     $("btn-endgame").style.display = isHost ? "block" : "none";
+    $("btn-close").style.display = isHost ? "block" : "none";
     renderScore();
     syncOpenCard();
   }
@@ -1144,6 +1164,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
     if(ids.length){ var w=ps[ids[0]]; $("end-winner").textContent=w.name; $("end-winner").style.color=w.color; }
     $("btn-rematch").style.display = isHost ? "block" : "none";
+    $("btn-close-end").style.display = isHost ? "block" : "none";
     var body=$("end-body"); body.innerHTML="";
     var medals=["🥇","🥈","🥉"];
     for(var i=0;i<ids.length;i++){
@@ -1176,11 +1197,23 @@ document.addEventListener("DOMContentLoaded", function(){
   function leaveGame(){
     var ok = window.confirm("Leave this room and start fresh? Your session will be cleared.");
     if(!ok) return;
-    stopPolling(); clearLocal(); roomCode=null; myId=null;
+    stopPolling(); clearLocal(); roomCode=null; myId=null; inRoom=false;
     location.reload();
+  }
+  function closeRoom(){
+    if(!isHost || !roomCode) return;
+    if(!window.confirm("Close this room for EVERYONE? All teams will return to the start screen.")) return;
+    var code=roomCode;
+    stopPolling();
+    restDelete(code).then(function(){
+      clearLocal(); inRoom=false; roomCode=null; myId=null; room=null;
+      location.reload();
+    });
   }
   $("btn-leave").addEventListener("click", leaveGame);
   $("btn-leave-lobby").addEventListener("click", leaveGame);
+  $("btn-close").addEventListener("click", closeRoom);
+  $("btn-close-end").addEventListener("click", closeRoom);
   $("inp-code").addEventListener("input", function(){ this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
 
   /* ===================== REJOIN ===================== */
@@ -1189,7 +1222,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(s && s.roomCode && s.myId){
       roomCode=s.roomCode; myId=s.myId; myName=s.myName||""; isHost=!!s.isHost;
       restGet(roomCode).then(function(data){
-        if(data && data.meta && data.players && data.players[myId]){ startPolling(); }
+        if(data && data.meta && data.players && data.players[myId]){ inRoom=true; startPolling(); }
         else { clearLocal(); roomCode=null; myId=null; }
       });
     }
