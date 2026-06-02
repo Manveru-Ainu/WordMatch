@@ -197,12 +197,7 @@
     <div class="card panel">
       <label class="fld" for="inp-name-host">Your name or team (host)</label>
       <input type="text" id="inp-name-host" maxlength="14" placeholder="e.g. Teacher / Team 1">
-      <label class="fld" for="sel-laps">Number of laps</label>
-      <select id="sel-laps">
-        <option value="2">2 laps (quick)</option>
-        <option value="3" selected>3 laps (recommended)</option>
-        <option value="5">5 laps (long)</option>
-      </select>
+      <p class="hint" style="text-align:left;margin-top:10px;">Laps are unlimited — keep playing until you tap “End game”.</p>
       <label class="fld">Coins per category — also sets price (×2) and rent</label>
       <div class="players" style="grid-template-columns:repeat(2,1fr);">
         <div><span class="hint" style="display:block;text-align:left;">Verbs</span><input type="text" id="pt-verb" value="15"></div>
@@ -262,6 +257,7 @@
           <tbody id="score-body"></tbody></table>
         </div>
         <button id="btn-skip" class="btn gray small block" style="display:none;">Skip turn (host)</button>
+        <button id="btn-endgame" class="btn coral small block" style="display:none;">End game &amp; show winner (host)</button>
         <button id="btn-leave" class="btn coral small block">Leave / New game</button>
       </div>
     </div>
@@ -412,21 +408,24 @@ document.addEventListener("DOMContentLoaded", function(){
   ];
 
 
-  // Chance deck — three card types like Turista Mundial: Telegram, Letter, Phone call.
-  // delta = coins change; toStart=true sends the player back to Start and pays salary.
+  // Chance deck — Turista-style cards of three types: Telegram, Letter, Phone call.
+  // effect: "coins" (delta) | "collectEach" (amt from every other team) |
+  //         "payEach" (amt to every other team) | "toStart" (+salary) | "skip" (lose next turn)
   var SUERTE = [
-    {type:"Telegram", tag:"📨", msg:"You won a contest! Collect +30 coins.", delta:30},
-    {type:"Telegram", tag:"📨", msg:"Urgent fee to pay. -20 coins.", delta:-20},
-    {type:"Telegram", tag:"📨", msg:"Tax refund arrives. +15 coins.", delta:15},
-    {type:"Telegram", tag:"📨", msg:"Telegram from the bank: go back to Start and collect your salary.", delta:0, toStart:true},
-    {type:"Letter", tag:"✉️", msg:"Birthday gift in the mail. +20 coins.", delta:20},
-    {type:"Letter", tag:"✉️", msg:"School supplies bill. -15 coins.", delta:-15},
-    {type:"Letter", tag:"✉️", msg:"Scholarship award! +25 coins.", delta:25},
-    {type:"Letter", tag:"✉️", msg:"Late library fine. -10 coins.", delta:-10},
-    {type:"Phone call", tag:"📞", msg:"Surprise bonus call. +10 coins.", delta:10},
-    {type:"Phone call", tag:"📞", msg:"Phone bill is due. -10 coins.", delta:-10},
-    {type:"Phone call", tag:"📞", msg:"Travel agency refund. +20 coins.", delta:20},
-    {type:"Phone call", tag:"📞", msg:"Call from home: go back to Start and collect your salary.", delta:0, toStart:true}
+    {type:"Telegram", tag:"📨", msg:"It's your birthday! Collect 10 coins from each team.", effect:"collectEach", amt:10},
+    {type:"Telegram", tag:"📨", msg:"Urgent fee to pay. Lose 20 coins.", effect:"coins", delta:-20},
+    {type:"Telegram", tag:"📨", msg:"Tax refund arrives. Collect 15 coins.", effect:"coins", delta:15},
+    {type:"Telegram", tag:"📨", msg:"Telegram from the bank: go back to Start and collect your salary.", effect:"toStart"},
+    {type:"Letter", tag:"✉️", msg:"You owe everyone for the party. Pay each team 10 coins.", effect:"payEach", amt:10},
+    {type:"Letter", tag:"✉️", msg:"Scholarship award! Collect 25 coins.", effect:"coins", delta:25},
+    {type:"Letter", tag:"✉️", msg:"Jury duty — miss your next turn.", effect:"skip"},
+    {type:"Letter", tag:"✉️", msg:"Late library fine. Lose 10 coins.", effect:"coins", delta:-10},
+    {type:"Phone call", tag:"📞", msg:"Everyone chips in 5 coins for your trip. Collect 5 from each team.", effect:"collectEach", amt:5},
+    {type:"Phone call", tag:"📞", msg:"Phone bill is due. Lose 10 coins.", effect:"coins", delta:-10},
+    {type:"Phone call", tag:"📞", msg:"You lost a bet — pay each team 5 coins.", effect:"payEach", amt:5},
+    {type:"Phone call", tag:"📞", msg:"Call from home: go back to Start and collect your salary.", effect:"toStart"},
+    {type:"Telegram", tag:"📨", msg:"Caught speeding — go to jail, miss your next turn.", effect:"skip"},
+    {type:"Letter", tag:"✉️", msg:"Surprise inheritance! Collect 30 coins.", effect:"coins", delta:30}
   ];
 
   /* ===================== BOARD (ring, 10 cells per row, Monopoly-style) =====================
@@ -528,7 +527,7 @@ document.addEventListener("DOMContentLoaded", function(){
       lap:num($("pt-lap").value,25)
     };
     startCoins = num($("pt-start").value,100);
-    var laps = num($("sel-laps").value,3);
+    var laps = 0; // 0 = unlimited; game ends only when host taps End game
     var code = genCode();
     myId = genId(); myName = name; isHost = true; roomCode = code;
     var data = {
@@ -605,7 +604,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!room || !room.players) return;
     $("lobby-code").textContent = roomCode;
     $("game-code").textContent = roomCode;
-    $("lobby-laps").textContent = "Laps: " + (room.meta.laps||3) + "  ·  Up to 6 players or teams";
+    $("lobby-laps").textContent = "Unlimited laps · up to 6 players or teams · host ends the game";
     var box = $("lobby-players"); box.innerHTML="";
     var ps = room.players; var ids = Object.keys(ps);
     ids.sort(function(a,b){ return (ps[a].joined||0)-(ps[b].joined||0); });
@@ -674,16 +673,26 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     var order=meta.order||[]; var curId=order[meta.turnIndex];
     var cur=ps[curId];
+    var myTurn = (curId===myId);
+    // Jail: if it's my turn and I owe a skip, consume it and pass the turn.
+    if(myTurn && cur && cur.skipNext && !acting && !modalOpen){
+      acting=true;
+      restPatch(roomCode+"/players/"+myId, { skipNext:false }).then(function(){
+        var ord=room.meta.order||[]; var nx=(room.meta.turnIndex+1)%ord.length;
+        restPatch(roomCode+"/meta", { turnIndex:nx, lastEvent:{message:cur.name+" is in jail — turn skipped", t:Date.now()} }).then(function(){ acting=false; poll(); });
+      });
+      return;
+    }
     $("turn-who").textContent = cur ? cur.name : "—";
     $("turn-who").style.color = cur ? cur.color : "var(--ink)";
-    var myTurn = (curId===myId);
     $("btn-roll").disabled = !myTurn || acting || modalOpen;
     $("turn-hint").textContent = myTurn ? "Your turn! Roll the dice." : "Wait for your turn…";
     var me=ps[myId];
-    $("lapinfo").textContent = (me?("Your lap: "+(me.lap||0)):"") + "  /  goal: "+(meta.laps||3);
+    $("lapinfo").textContent = me ? ("Your lap: "+(me.lap||0)) : "";
     if(meta.die){ $("die").textContent = dieFace(meta.die); }
     if(meta.lastEvent && meta.lastEvent.message && failCount===0){ $("event-box").textContent = meta.lastEvent.message; }
     $("btn-skip").style.display = isHost ? "block" : "none";
+    $("btn-endgame").style.display = isHost ? "block" : "none";
     renderScore();
     syncOpenCard();
   }
@@ -744,10 +753,6 @@ document.addEventListener("DOMContentLoaded", function(){
     restPatch(roomCode+"/players/"+myId, {position:endPos, lap:lap, coins:coins});
     restPatch(roomCode+"/meta", {die:n});
     renderGame();
-    if(lap >= (room.meta.laps||3)){
-      restPatch(roomCode+"/meta", { state:"ended", finishedBy:myId, lastEvent:{message:me.name+" finished the "+(room.meta.laps||3)+" laps 🏁", t:Date.now()} });
-      acting=false; return;
-    }
     resolveCell(endPos, prefix);
   }
 
@@ -1050,14 +1055,37 @@ document.addEventListener("DOMContentLoaded", function(){
     var ok=document.createElement("button"); ok.className="opt"; ok.textContent="Continue";
     var me=myMe();
     var extra="";
-    if(card.toStart){
+    var myCoins=(me.coins!=null?me.coins:startCoins);
+
+    if(card.effect==="toStart"){
       me.position=0;
       var salary=(pointsCfg.lap!=null?pointsCfg.lap:25);
-      me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+salary);
-      extra=" (moved to Start, salary +"+salary+")";
-    } else {
-      me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+card.delta);
+      me.coins=Math.max(0,myCoins+salary);
+      extra=" (moved to Start, +"+salary+")";
+    } else if(card.effect==="skip"){
+      me.skipNext=true;
+      restPatch(roomCode+"/players/"+myId, { skipNext:true });
+      extra=" (will miss next turn)";
+    } else if(card.effect==="collectEach"){
+      var got=0; var ids=Object.keys(room.players);
+      for(var i=0;i<ids.length;i++){ if(ids[i]===myId) continue;
+        var op=room.players[ids[i]]; var oc=(op.coins!=null?op.coins:startCoins);
+        var take=Math.min(card.amt, oc); op.coins=oc-take; got+=take;
+        restPatch(roomCode+"/players/"+ids[i], { coins:op.coins });
+      }
+      me.coins=myCoins+got; extra=" (collected "+got+" total)";
+    } else if(card.effect==="payEach"){
+      var paid=0; var ids2=Object.keys(room.players); var bal=myCoins;
+      for(var j=0;j<ids2.length;j++){ if(ids2[j]===myId) continue;
+        var pp=room.players[ids2[j]]; var give=Math.min(card.amt, bal); bal-=give; paid+=give;
+        pp.coins=(pp.coins!=null?pp.coins:startCoins)+give;
+        restPatch(roomCode+"/players/"+ids2[j], { coins:pp.coins });
+      }
+      me.coins=bal; extra=" (paid "+paid+" total)";
+    } else { // coins
+      me.coins=Math.max(0,myCoins+(card.delta||0));
     }
+
     ok.addEventListener("click", function(){ closeModal(); finishTurn(prefix, me.name+" — "+(card.type||"Chance")+": "+card.msg+extra); });
     $("q-opts").appendChild(ok);
     $("overlay").classList.add("active");
@@ -1134,6 +1162,12 @@ document.addEventListener("DOMContentLoaded", function(){
   $("btn-start").addEventListener("click", startGame);
   $("btn-roll").addEventListener("click", rollDice);
   $("btn-skip").addEventListener("click", skipTurn);
+  $("btn-endgame").addEventListener("click", function(){
+    if(!isHost || !room || !room.meta) return;
+    if(!window.confirm("End the game now and show the final standings?")) return;
+    room.meta.activeCard=null; curCard.active=false; closeModal();
+    restPatch(roomCode+"/meta", { state:"ended", activeCard:null, lastEvent:{message:"The teacher ended the game 🏁", t:Date.now()} }).then(function(){ poll(); });
+  });
   $("btn-copy").addEventListener("click", function(){
     try{ navigator.clipboard.writeText(roomCode); $("btn-copy").textContent="Copied!"; setTimeout(function(){ $("btn-copy").textContent="Copy"; },1200); }catch(e){}
   });
