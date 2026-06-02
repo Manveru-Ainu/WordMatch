@@ -412,13 +412,21 @@ document.addEventListener("DOMContentLoaded", function(){
   ];
 
 
+  // Chance deck — three card types like Turista Mundial: Telegram, Letter, Phone call.
+  // delta = coins change; toStart=true sends the player back to Start and pays salary.
   var SUERTE = [
-    {msg:"✈️ VIP passport! +20 coins", delta:20},
-    {msg:"🧳 Lost a suitcase. -10 coins", delta:-10},
-    {msg:"💸 Free souvenir. +10 coins", delta:10},
-    {msg:"🌧️ Flight delayed. -5 coins", delta:-5},
-    {msg:"🎁 Traveler's prize. +15 coins", delta:15},
-    {msg:"📸 Perfect photo. +5 coins", delta:5}
+    {type:"Telegram", tag:"📨", msg:"You won a contest! Collect +30 coins.", delta:30},
+    {type:"Telegram", tag:"📨", msg:"Urgent fee to pay. -20 coins.", delta:-20},
+    {type:"Telegram", tag:"📨", msg:"Tax refund arrives. +15 coins.", delta:15},
+    {type:"Telegram", tag:"📨", msg:"Telegram from the bank: go back to Start and collect your salary.", delta:0, toStart:true},
+    {type:"Letter", tag:"✉️", msg:"Birthday gift in the mail. +20 coins.", delta:20},
+    {type:"Letter", tag:"✉️", msg:"School supplies bill. -15 coins.", delta:-15},
+    {type:"Letter", tag:"✉️", msg:"Scholarship award! +25 coins.", delta:25},
+    {type:"Letter", tag:"✉️", msg:"Late library fine. -10 coins.", delta:-10},
+    {type:"Phone call", tag:"📞", msg:"Surprise bonus call. +10 coins.", delta:10},
+    {type:"Phone call", tag:"📞", msg:"Phone bill is due. -10 coins.", delta:-10},
+    {type:"Phone call", tag:"📞", msg:"Travel agency refund. +20 coins.", delta:20},
+    {type:"Phone call", tag:"📞", msg:"Call from home: go back to Start and collect your salary.", delta:0, toStart:true}
   ];
 
   /* ===================== BOARD (ring, 10 cells per row, Monopoly-style) =====================
@@ -636,7 +644,8 @@ document.addEventListener("DOMContentLoaded", function(){
       el.className=cls;
       el.style.gridRow=(c.row+1); el.style.gridColumn=(c.col+1);
       el.id="cell-"+i;
-      el.innerHTML='<div class="clabel">'+c.label+'</div><div class="csub">'+(c.sub||"")+'</div><div class="tokens" id="tok-'+i+'"></div>';
+      var sub = (c.type==="cat") ? ("$"+buyPrice(c.cat)) : (c.sub||"");
+      el.innerHTML='<div class="clabel">'+c.label+'</div><div class="csub">'+sub+'</div><div class="tokens" id="tok-'+i+'"></div>';
       b.appendChild(el);
     }
     var center=document.createElement("div"); center.className="center";
@@ -1033,14 +1042,23 @@ document.addEventListener("DOMContentLoaded", function(){
   function presentCard(prefix){
     modalOpen=true;
     var card=pick(SUERTE);
-    var tag=$("q-tag"); tag.className="qtag suerte"; tag.textContent="Chance";
+    var tag=$("q-tag"); tag.className="qtag suerte"; tag.textContent=(card.tag?card.tag+" ":"")+(card.type||"Chance");
     $("q-prompt").innerHTML=card.msg;
     $("q-speak").style.display="none";
     $("q-opts").innerHTML=""; $("q-foot").textContent="";
     $("q-answer").style.display="none"; $("q-judge").style.display="none";
     var ok=document.createElement("button"); ok.className="opt"; ok.textContent="Continue";
-    var me=myMe(); me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+card.delta);
-    ok.addEventListener("click", function(){ closeModal(); finishTurn(prefix, me.name+": "+card.msg); });
+    var me=myMe();
+    var extra="";
+    if(card.toStart){
+      me.position=0;
+      var salary=(pointsCfg.lap!=null?pointsCfg.lap:25);
+      me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+salary);
+      extra=" (moved to Start, salary +"+salary+")";
+    } else {
+      me.coins=Math.max(0,(me.coins!=null?me.coins:startCoins)+card.delta);
+    }
+    ok.addEventListener("click", function(){ closeModal(); finishTurn(prefix, me.name+" — "+(card.type||"Chance")+": "+card.msg+extra); });
     $("q-opts").appendChild(ok);
     $("overlay").classList.add("active");
   }
