@@ -63,7 +63,7 @@ hr{border:none;border-top:2px solid var(--border);}
 .gbtns{display:none;}
 
 /* ── GAME ── */
-#game{padding:.6rem;gap:.5rem;width:100%;margin:0 auto;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+#game{padding:.6rem;gap:.5rem;width:100%;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;box-sizing:border-box;}
 .ghead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;flex-shrink:0;}
 .gtitle{font-size:1.1rem;font-weight:900;color:var(--blue);}
 .sbar-wrap{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;}
@@ -78,8 +78,8 @@ hr{border:none;border-top:2px solid var(--border);}
 .tbanner{text-align:center;padding:.5rem 1rem;border-radius:12px;font-size:.88rem;font-weight:800;border:2px solid var(--border);background:var(--white);flex-shrink:0;}
 .tbanner.mine  {border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
 .tbanner.theirs{color:var(--muted);}
-.grid{display:grid;gap:.45rem;flex:1;overflow:hidden;align-content:start;}
-.cw{aspect-ratio:2/3;perspective:800px;cursor:pointer;}
+.grid{display:grid;gap:.45rem;}
+.cw{cursor:pointer;}
 .cw.matched{pointer-events:none;}
 .ci{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.34,1.15,.64,1);}
 .cw.flipped .ci,.cw.matched .ci{transform:rotateY(180deg);}
@@ -659,33 +659,55 @@ function isMyTurn() {
    ════════════════════════════════════════════════ */
 function fitGrid() {
   var grid = document.getElementById('grid');
-  var gameEl = document.getElementById('game');
-  if (!grid || !gameEl) return;
+  var game = document.getElementById('game');
+  if (!grid || !game || cards.length === 0) return;
 
-  var totalCards = cards.length;
-  // measure available height for grid
-  var gameH = window.innerHeight;
-  var gameW = gameEl.offsetWidth || window.innerWidth;
-  var usedH = 0;
-  var siblings = gameEl.children;
-  for (var i = 0; i < siblings.length; i++) {
-    if (siblings[i] !== grid) usedH += siblings[i].offsetHeight + 8;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+  var pad = 12; // total horizontal padding
+  var gapPx = 4;
+
+  // measure chrome: everything above the grid
+  var aboveGrid = 0;
+  var children = game.children;
+  for (var i = 0; i < children.length; i++) {
+    if (children[i] === grid) break;
+    aboveGrid += children[i].getBoundingClientRect().height + 8;
   }
-  var gridH = gameH - usedH - 20;
-  var gridW = gameW - 12;
+  var availH = vh - aboveGrid - pad * 2;
+  var availW = vw - pad * 2;
 
-  // try columns from 4 to 12, find best fit where all rows fit in gridH
-  // cards have aspect-ratio 2/3 so height = width * 1.5
+  var n = cards.length;
   var bestCols = 4;
-  for (var cols = 12; cols >= 4; cols--) {
-    var rows = Math.ceil(totalCards / cols);
-    var gap = 4;
-    var cardW = (gridW - gap * (cols - 1)) / cols;
-    var cardH = cardW * 1.5;
-    var totalH = rows * cardH + gap * (rows - 1);
-    if (totalH <= gridH) { bestCols = cols; break; }
+  var bestCardH = 0;
+
+  // try every column count, pick the one giving biggest card that still fits
+  for (var cols = 4; cols <= 12; cols++) {
+    var rows = Math.ceil(n / cols);
+    var cardW = (availW - gapPx * (cols - 1)) / cols;
+    var cardH = cardW * 1.5; // aspect ratio 2:3
+    var totalH = rows * cardH + gapPx * (rows - 1);
+    if (totalH <= availH) {
+      // this fits — use biggest card that fits
+      if (cardH > bestCardH) { bestCardH = cardH; bestCols = cols; }
+    }
   }
+
+  // if nothing fits even at 12 cols, force 12 cols (will be small but no huge overflow)
+  if (bestCardH === 0) {
+    bestCols = 12;
+    var cardW12 = (availW - gapPx * 11) / 12;
+    bestCardH = cardW12 * 1.5;
+  }
+
   grid.style.gridTemplateColumns = 'repeat(' + bestCols + ', 1fr)';
+
+  // set explicit height on each card so aspect-ratio works reliably on all browsers
+  var cardH = Math.floor(bestCardH);
+  var wraps = grid.querySelectorAll('.cw');
+  for (var j = 0; j < wraps.length; j++) {
+    wraps[j].style.height = cardH + 'px';
+  }
 }
 
 function renderBoard() {
